@@ -18,7 +18,7 @@ function word(start) {
 
 test('learning examples in both languages match the versioned IPv4 lesson frame', () => {
   const examples = [
-    raw(0, 5), raw(6, 11), raw(12, 13), raw(16, 17), raw(24, 25),
+    raw(0, 5), raw(6, 11), raw(12, 13), raw(16, 17), raw(18, 19), raw(20, 21), raw(24, 25),
     raw(26, 29), raw(30, 33), raw(34, 35), raw(36, 37), raw(38, 39), raw(40, 41)
   ];
   assert.equal(bytes.length, 62);
@@ -78,11 +78,22 @@ test('bilingual packet diagrams preserve the sample values and field widths', ()
     assert.equal((section.match(/class="diagram-scroll" role="region"/g) || []).length, 3);
 
     rows.forEach((row, index) => {
-      const fields = [...row[2].matchAll(/<span class="diagram-field span-(\d+)"><strong>[^<]+<\/strong><code>([^<]+)<\/code><\/span>/g)];
+      const fields = [...row[2].matchAll(/<span class="diagram-field span-(\d+)" data-learn-field="[^"]+"><strong>[^<]+<\/strong><code>([^<]+)<\/code><\/span>/g)];
       const expectedWidth = index === 0 ? 14 : 32;
       assert.equal(row[1], index === 0 ? 'bytes' : 'bits');
       assert.equal(fields.reduce((sum, field) => sum + Number(field[1]), 0), expectedWidth, `${locale} row ${index} width`);
       assert.deepEqual(fields.map(field => field[2]), expectedValues[index], `${locale} row ${index} values`);
     });
+  }
+});
+
+test('each diagram field has exactly one matching explanation row in both languages', () => {
+  for (const locale of ['ja', 'en']) {
+    const section = html.split(`<div id="learn-${locale}"`)[1].split(locale === 'ja' ? '<div id="learn-en"' : '</section>\n  </main>')[0];
+    const diagramKeys = [...section.matchAll(/<span class="diagram-field span-\d+" data-learn-field="([^"]+)"/g)].map(match => match[1]);
+    const rowKeys = [...section.matchAll(/<div data-learn-field="([^"]+)"><dt>/g)].map(match => match[1]);
+    assert.equal(diagramKeys.length, 19, `${locale} field count`);
+    assert.equal(new Set(diagramKeys).size, 19, `${locale} unique diagram fields`);
+    assert.deepEqual(rowKeys, diagramKeys, `${locale} diagram-to-explanation order`);
   }
 });
