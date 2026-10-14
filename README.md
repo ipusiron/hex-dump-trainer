@@ -45,7 +45,7 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 ## 🌐 公開準備ページ
 
-[GitHub Pagesの準備中ページ](https://ipusiron.github.io/hex-dump-trainer/)を公開します。
+[GitHub Pagesの準備中ページ](https://ipusiron.github.io/hex-dump-trainer/)を公開しています。
 このページでは、まだ演習はできません。
 
 ## ✨ 学べること

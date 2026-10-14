@@ -12,7 +12,7 @@ No book is required.
 
 ## 🌐 Coming-soon page
 
-The [GitHub Pages coming-soon page](https://ipusiron.github.io/hex-dump-trainer/) is being published.
+The [GitHub Pages coming-soon page](https://ipusiron.github.io/hex-dump-trainer/) is available.
 Exercises are not available there yet.
 
 ## ✨ What you will learn
