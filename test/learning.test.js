@@ -53,3 +53,36 @@ test('exercise and learning tabs have accessible relationships', () => {
   assert.match(html, /id="practice-panel"[^>]*role="tabpanel"[^>]*aria-labelledby="practice-tab"/);
   assert.match(html, /id="learn-panel"[^>]*role="tabpanel"[^>]*aria-labelledby="learn-tab"/);
 });
+
+test('bilingual packet diagrams preserve the sample values and field widths', () => {
+  const expectedValues = [
+    ['02 FE DC BA 98 76', '02 12 34 56 78 9A', '08 00'],
+    ['4', '5', '00', '00 30'],
+    ['30 03', '010', '0'],
+    ['80', '11', '63 E6'],
+    ['C6 33 64 4D'],
+    ['CB 00 71 52'],
+    ['D6 D8', '00 35'],
+    ['00 1C', 'FD 29']
+  ];
+  assert.equal((bytes[14] >> 4).toString(), expectedValues[1][0]);
+  assert.equal((bytes[14] & 0x0f).toString(), expectedValues[1][1]);
+  assert.equal(bytes[15].toString(16).padStart(2, '0').toUpperCase(), expectedValues[1][2]);
+  assert.equal(((word(20) >> 13) & 7).toString(2).padStart(3, '0'), expectedValues[2][1]);
+  assert.equal((word(20) & 0x1fff).toString(), expectedValues[2][2]);
+
+  for (const locale of ['ja', 'en']) {
+    const section = html.split(`<div id="learn-${locale}"`)[1].split(locale === 'ja' ? '<div id="learn-en"' : '</section>\n  </main>')[0];
+    const rows = [...section.matchAll(/<div class="diagram-cells diagram-cells--(bytes|bits)">([\s\S]*?)<\/div>/g)];
+    assert.equal(rows.length, 8, `${locale} diagram row count`);
+    assert.equal((section.match(/class="diagram-scroll" role="region"/g) || []).length, 3);
+
+    rows.forEach((row, index) => {
+      const fields = [...row[2].matchAll(/<span class="diagram-field span-(\d+)"><strong>[^<]+<\/strong><code>([^<]+)<\/code><\/span>/g)];
+      const expectedWidth = index === 0 ? 14 : 32;
+      assert.equal(row[1], index === 0 ? 'bytes' : 'bits');
+      assert.equal(fields.reduce((sum, field) => sum + Number(field[1]), 0), expectedWidth, `${locale} row ${index} width`);
+      assert.deepEqual(fields.map(field => field[2]), expectedValues[index], `${locale} row ${index} values`);
+    });
+  }
+});
