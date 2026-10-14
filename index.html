@@ -103,7 +103,7 @@
 
       <div id="learn-ja" lang="ja">
         <p class="learning-lead">IPv4教材の自作フレームを例に、外側のヘッダーから順に読みます。各図の箱の幅はフィールドの長さ、箱内の値は教材の実際の値です。左端はフレーム先頭を0とする10進数のバイト位置です。</p>
-        <p class="learning-interaction-note">図の項目か解説行にカーソルを合わせると、対応箇所を強調します。タップで選択でき、同じ項目をもう一度タップすると解除できます。キーボードでは図の項目に移動し、EnterかSpaceで選択できます。</p>
+        <p class="learning-interaction-note">図の項目か解説行にカーソルを合わせると、図・16進ダンプ・解説の対応箇所を強調します。タップで選択でき、同じ項目をもう一度タップすると解除できます。キーボードでは図の項目に移動し、EnterかSpaceで選択できます。</p>
         <nav class="learning-toc" aria-label="学習項目">
           <a href="#learn-ethernet-ja">Ethernet II</a>
           <a href="#learn-ipv4-ja">IPv4</a>
@@ -132,6 +132,7 @@
               </div>
             </div>
           </figure>
+          <section class="learning-dump-panel" data-learn-header="ethernet"></section>
           <dl class="learning-fields">
             <div data-learn-field="ether-dst"><dt><code>0〜5</code> 宛先MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
             <div data-learn-field="ether-src"><dt><code>6〜11</code> 送信元MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
@@ -155,6 +156,7 @@
               </div>
             </div>
           </figure>
+          <section class="learning-dump-panel" data-learn-header="ipv4"></section>
           <dl class="learning-fields">
             <div data-learn-field="ip-version"><dt><code>14</code> Version</dt><dd><code>45</code>の上位4ビットが<code>4</code>。IPv4を示します。</dd></div>
             <div data-learn-field="ip-ihl"><dt><code>14</code> IHL</dt><dd><code>45</code>の下位4ビットが<code>5</code>。ヘッダー長は<code>5 × 4 = 20</code>バイトです。</dd></div>
@@ -185,6 +187,7 @@
               </div>
             </div>
           </figure>
+          <section class="learning-dump-panel" data-learn-header="udp"></section>
           <dl class="learning-fields">
             <div data-learn-field="udp-src"><dt><code>34〜35</code> 送信元ポート</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>。</dd></div>
             <div data-learn-field="udp-dst"><dt><code>36〜37</code> 宛先ポート</dt><dd><code>00 35</code> → <code>53</code>。</dd></div>
@@ -199,7 +202,7 @@
 
       <div id="learn-en" lang="en" hidden>
         <p class="learning-lead">Follow the headers from the outside inward using the original frame in the IPv4 lesson. Box widths show field lengths, and the values come from the lesson frame. Labels at the left are decimal byte offsets from the start of the Ethernet frame.</p>
-        <p class="learning-interaction-note">Hover over a diagram field or explanation row to highlight its match. Tap to keep it selected; tap the same item again to clear it. With a keyboard, focus a diagram field and press Enter or Space to select it.</p>
+        <p class="learning-interaction-note">Hover over a diagram field or explanation row to highlight the matching diagram, hex-dump bytes, and explanation. Tap to keep it selected; tap the same item again to clear it. With a keyboard, focus a diagram field and press Enter or Space to select it.</p>
         <nav class="learning-toc" aria-label="Learning topics">
           <a href="#learn-ethernet-en">Ethernet II</a>
           <a href="#learn-ipv4-en">IPv4</a>
@@ -228,6 +231,7 @@
               </div>
             </div>
           </figure>
+          <section class="learning-dump-panel" data-learn-header="ethernet"></section>
           <dl class="learning-fields">
             <div data-learn-field="ether-dst"><dt><code>0–5</code> Destination MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
             <div data-learn-field="ether-src"><dt><code>6–11</code> Source MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
@@ -251,6 +255,7 @@
               </div>
             </div>
           </figure>
+          <section class="learning-dump-panel" data-learn-header="ipv4"></section>
           <dl class="learning-fields">
             <div data-learn-field="ip-version"><dt><code>14</code> Version</dt><dd>The upper four bits of <code>45</code> give <code>4</code>, indicating IPv4.</dd></div>
             <div data-learn-field="ip-ihl"><dt><code>14</code> IHL</dt><dd>The lower four bits of <code>45</code> give <code>5</code>. Header length is <code>5 × 4 = 20</code> bytes.</dd></div>
@@ -281,6 +286,7 @@
               </div>
             </div>
           </figure>
+          <section class="learning-dump-panel" data-learn-header="udp"></section>
           <dl class="learning-fields">
             <div data-learn-field="udp-src"><dt><code>34–35</code> Source Port</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>.</dd></div>
             <div data-learn-field="udp-dst"><dt><code>36–37</code> Destination Port</dt><dd><code>00 35</code> → <code>53</code>.</dd></div>
