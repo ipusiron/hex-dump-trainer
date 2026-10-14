@@ -57,13 +57,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, .dump:focus-visible 
   border-radius: 1.25rem;
   background: #102238;
   color: #fff;
+  text-align: center;
 }
 
 .hero-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  justify-items: center;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
@@ -103,7 +102,12 @@ h1 {
 }
 
 .guide {
-  margin-top: 1rem;
+  margin: 1rem auto 0;
+  text-align: center;
+}
+
+.guide, .workspace, .scope-note {
+  max-width: 60rem;
 }
 
 .panel {
@@ -121,13 +125,19 @@ h1 {
 }
 
 .guide p {
-  margin-bottom: 0.6rem;
+  max-width: 48rem;
+  margin: 0 auto 0.6rem;
+  text-align: left;
 }
 
 .workspace {
   display: grid;
   gap: 1rem;
-  margin-top: 1rem;
+  margin: 1rem auto 0;
+}
+
+.lessons, .exercise {
+  text-align: center;
 }
 
 .small-note {
@@ -149,7 +159,7 @@ h1 {
   border-radius: 0.6rem;
   background: #f6f9fd;
   color: #17283c;
-  text-align: left;
+  text-align: center;
 }
 
 .lesson-button[aria-current="true"] {
@@ -184,12 +194,15 @@ h1 {
 }
 
 .dump {
+  width: fit-content;
   max-width: 100%;
+  margin: 0 auto;
   overflow-x: auto;
   padding: 0.75rem;
   border: 1px solid #b8c9dd;
   border-radius: 0.6rem;
   background: #f8fafc;
+  text-align: left;
 }
 
 .dump-row {
@@ -264,12 +277,14 @@ h1 {
   display: grid;
   gap: 0.75rem;
   max-width: 32rem;
+  margin: 0 auto;
 }
 
 .range-fields label, .value-field label {
   display: grid;
   gap: 0.25rem;
   font-weight: 600;
+  text-align: left;
 }
 
 input {
@@ -284,6 +299,7 @@ input {
 
 .value-field {
   max-width: 32rem;
+  margin: 0 auto;
 }
 
 .primary-button, .secondary-button, .text-button {
@@ -319,6 +335,7 @@ input {
 .help-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
   margin-top: 0.7rem;
 }
@@ -345,11 +362,13 @@ input {
 }
 
 .solution {
-  margin-top: 1rem;
+  max-width: 40rem;
+  margin: 1rem auto 0;
   padding: 1rem;
   border: 1px solid #b5ddc0;
   border-radius: 0.6rem;
   background: #f3fbf5;
+  text-align: left;
 }
 
 .solution h3 {
@@ -381,9 +400,10 @@ input {
 }
 
 .scope-note {
-  margin-top: 1.25rem;
+  margin: 1.25rem auto 0;
   color: #40556d;
   font-size: 0.9rem;
+  text-align: center;
 }
 
 [hidden] {
@@ -404,14 +424,17 @@ input {
 
   .hero {
     padding: 2.5rem;
+    position: relative;
   }
 
-  .workspace {
-    grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);
+  .language-button {
+    position: absolute;
+    top: 2.5rem;
+    right: 2.5rem;
   }
 
   .lesson-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .range-fields {
