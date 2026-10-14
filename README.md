@@ -43,6 +43,11 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 > 現在は開発準備中です。演習ページと教材はまだ実装されていません。
 
+## 🌐 公開準備ページ
+
+[GitHub Pagesの準備中ページ](https://ipusiron.github.io/hex-dump-trainer/)を公開します。
+このページでは、まだ演習はできません。
+
 ## ✨ 学べること
 
 - ゼロ始まりのオフセットとバイトの位置の対応
@@ -58,6 +63,7 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 ## 🔧 起動方法
 
 演習ページは未実装のため、現時点では起動できません。
+ローカルの`index.html`を開くと準備中ページを確認できます。
 第1弾では、公開ページとローカルの`file://`の両方で動作する静的なWebアプリケーションを予定しています。
 
 ## 🔬 解答例
@@ -85,6 +91,9 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 ```text
 hex-dump-trainer/
+├── .gitignore    # ローカルの機密ファイルなどを除外
+├── index.html    # 準備中ページ
+├── style.css     # 準備中ページのスタイル
 ├── README.md     # 日本語版
 ├── README.en.md  # 英語版
 └── LICENSE       # MIT License

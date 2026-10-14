@@ -10,6 +10,11 @@ No book is required.
 
 > This project is in preparation. The exercise page and sample frames have not been implemented yet.
 
+## 🌐 Coming-soon page
+
+The [GitHub Pages coming-soon page](https://ipusiron.github.io/hex-dump-trainer/) is being published.
+Exercises are not available there yet.
+
 ## ✨ What you will learn
 
 - How zero-based offsets correspond to byte positions
@@ -25,6 +30,7 @@ You will select byte ranges or enter values, use hints, and then check your answ
 ## 🔧 Getting started
 
 There is no exercise page to run yet.
+You can open the local `index.html` to view the coming-soon page.
 The first release is planned as a static web app that works both on its published page and locally through `file://`.
 
 ## 🔬 Worked example
@@ -52,6 +58,9 @@ The sample-data checks and actual test commands will be documented after impleme
 
 ```text
 hex-dump-trainer/
+├── .gitignore    # Exclude local secrets and generated files
+├── index.html    # Coming-soon page
+├── style.css     # Coming-soon page styles
 ├── README.md     # Japanese
 ├── README.en.md  # English
 └── LICENSE       # MIT License

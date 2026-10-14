@@ -1,0 +1,134 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f3f6fa;
+  color: #17283c;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+
+a {
+  color: #184f91;
+  overflow-wrap: anywhere;
+}
+
+a:focus-visible {
+  outline: 3px solid #e38120;
+  outline-offset: 3px;
+}
+
+.page {
+  width: min(100%, 64rem);
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.hero {
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: #102238;
+  color: #fff;
+}
+
+.eyebrow {
+  margin: 0 0 1.25rem;
+  color: #c5d7ef;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.status {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: #d4f0df;
+  color: #174a30;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+h1, h2, p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  margin-bottom: 0;
+  color: #e3ebf7;
+  font-size: 1.1rem;
+}
+
+.language-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.panel {
+  padding: 1.5rem;
+  border: 1px solid #d7e0ec;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.panel h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.panel p:last-child {
+  margin-bottom: 0;
+}
+
+.links {
+  margin-top: 1.5rem;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  background: #184f91;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.links a:hover {
+  background: #103968;
+}
+
+.footer {
+  padding: 0 1rem 2rem;
+  color: #40556d;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (min-width: 48rem) {
+  .page {
+    padding-top: 3rem;
+  }
+
+  .hero {
+    padding: 2.5rem;
+  }
+
+  .language-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
