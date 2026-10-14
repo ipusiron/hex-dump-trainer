@@ -26,12 +26,19 @@ tags:
   - education
 
 repo_url: "https://github.com/ipusiron/hex-dump-trainer"
+demo_url: "https://ipusiron.github.io/hex-dump-trainer/"
 
 hub: false
 ---
 -->
 
 # Hex Dump Trainer - 16進ダンプを自分で読む演習
+
+![GitHub stars](https://img.shields.io/github/stars/ipusiron/hex-dump-trainer?style=social)
+![GitHub forks](https://img.shields.io/github/forks/ipusiron/hex-dump-trainer?style=social)
+![GitHub last commit](https://img.shields.io/github/last-commit/ipusiron/hex-dump-trainer)
+![GitHub license](https://img.shields.io/github/license/ipusiron/hex-dump-trainer)
+[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-blue?logo=github)](https://ipusiron.github.io/hex-dump-trainer/)
 
 [English](README.en.md)
 
@@ -41,12 +48,15 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 16進ダンプを初めて見る人は、短い導入練習から始められます。
 書籍がなくても使えます。
 
-> 現在は開発準備中です。演習ページと教材はまだ実装されていません。
+## 🌐 デモページ
 
-## 🌐 公開準備ページ
+👉 **[Hex Dump Trainerを開く](https://ipusiron.github.io/hex-dump-trainer/)**
 
-[GitHub Pagesの準備中ページ](https://ipusiron.github.io/hex-dump-trainer/)を公開しています。
-このページでは、まだ演習はできません。
+ブラウザーだけで演習できます。教材は書籍を必要としない自作フレームです。
+
+## 📸 スクリーンショット
+
+![入門問題、16進ダンプ、教材一覧を表示した画面](assets/screenshot-desktop.png)
 
 ## ✨ 学べること
 
@@ -57,46 +67,66 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 ## 📖 使い方
 
-実装後は、短い導入練習から始めるか、スキップして教材を選べるようにする予定です。
-問題ではバイト範囲を選ぶか値を入力し、ヒントを使いながら答え合わせします。
+1. 入門の2問から始めるか、導入をスキップしてEthernet IIへ進みます。教材一覧からいつでも切り替えられます。
+2. 位置問題では開始・終了のバイトを順に選びます。小さい画面やキーボード操作では、10進数のオフセット入力も使えます。
+3. 値問題・計算問題では、問題文で指定された表記の答えを入力します。
+4. 「答え合わせ」で確認します。誤答なら再挑戦でき、ヒントは対象ヘッダー→相対位置→解答表示の3段階です。「答えを見る」でも解答を表示できます。
+
+日英を切り替えても、表示中の問題、選択範囲、入力値、結果は保持されます。教材の切り替え時は、その教材の問題が未回答状態から始まり、完了記録は残ります。
 
 ## 🔧 起動方法
 
-演習ページは未実装のため、現時点では起動できません。
-ローカルの`index.html`を開くと準備中ページを確認できます。
-第1弾では、公開ページとローカルの`file://`の両方で動作する静的なWebアプリケーションを予定しています。
+[公開ページ](https://ipusiron.github.io/hex-dump-trainer/)へアクセスするか、ローカルの`index.html`を直接開いてください。`file://`でも動作します。インストールやサーバーは不要です。
 
 ## 🔬 解答例
 
-自作教材のバイト列が確定した後に、バイト範囲、16進値、読み取った値、変換手順が一致する例を記載します。
+IPv4教材のTotal Lengthは、フレーム先頭からの絶対オフセット`16〜17`、IPv4ヘッダー先頭（`14`）からの相対オフセット`2〜3`にあります。
+該当バイトは`00 30`です。ネットワークバイト順に`0x0030`と読み、10進数へ変換すると`48`バイトです。Ethernet IIヘッダーの14バイトは、このTotal Lengthに含みません。
+
+## 🎯 ユースケース
+
+- オフセット`12〜13`の`08 00`を`0x0800`と読み、後続がIPv4であると確かめる。
+- `45`の上位4ビットからVersion `4`、下位4ビットからIHL `5`を取り、IPv4ヘッダー長`20`バイトを求める。
+- `C6 33 64 4D`を1バイトずつ10進数に変換し、`198.51.100.77`と読む。
+- 答えを先に表示せず、バイト範囲を選んでから根拠を確認する。
 
 ## ⚠️ 教材の範囲と制限
 
-第1弾の教材は、オプションなしのIPv4を含むEthernet IIフレームに限定します。
+教材はオプションなしのIPv4を含むEthernet IIフレームに限定します。
 教材のバイト列にフレームチェックシーケンス（FCS）は含めません。
-後続データは整合したUDPデータグラムとしますが、第1弾ではUDPのフィールドを採点しません。
-自分の16進ダンプの貼り付け、ICMPv4などは第1弾に含みません。
+後続データは長さ・チェックサムが整合したUDPデータグラムですが、UDPのフィールドは採点しません。
+VLAN、IPv6、ARP、IPフラグメント、IPv4オプション、自分の16進ダンプの貼り付け、ICMPv4、pcap/pcapngの読込には対応しません。
 
 ## 🔒 データとプライバシー
 
-第1弾は自作の内蔵教材のみを扱い、自由入力はありません。
-演習ページは入力を外部へ送信しない構成で実装する予定です。
+自作の内蔵教材のみを扱い、自由入力はありません。回答と進捗はページ内のメモリーだけに保持し、再読み込みで消えます。アプリ自身は回答を外部へ送信しません。GitHubのリンクを押した場合は、GitHubのサイトへ移動します。
 
 ## 🧪 開発と検証
 
-第1弾は依存パッケージを必要としない構成を予定しています。
-実装後に、教材の検証方法と実際に使用するテストコマンドを記載します。
+HTML/CSS/JavaScriptのみで動作し、依存パッケージはありません。Node.js 22で次を実行すると、採点、全21問、4つの教材フレームのIPv4/UDP長・チェックサムを検証できます。
+
+```sh
+node --test test/*.test.js
+```
+
+CIでも同じテストとJavaScript構文検査を実行します。画面はローカルの`file://`とHTTP、320〜1280pxで確認しています。
 
 ## 📁 ディレクトリー構造
 
 ```text
 hex-dump-trainer/
-├── .gitignore    # ローカルの機密ファイルなどを除外
-├── index.html    # 準備中ページ
-├── style.css     # 準備中ページのスタイル
-├── README.md     # 日本語版
-├── README.en.md  # 英語版
-└── LICENSE       # MIT License
+├── .github/workflows/test.yml # テストCI
+├── .gitignore               # ローカルの機密ファイルなどを除外
+├── assets/screenshot-desktop.png # 画面例
+├── index.html               # 演習画面
+├── style.css                # モバイル優先のスタイル
+├── app.js                   # 画面と進捗
+├── core.js                  # バイト読取・採点
+├── data.js                  # バージョン付き自作教材
+├── test/                    # 依存なしの自動テスト
+├── README.md                # 日本語版
+├── README.en.md             # 英語版
+└── LICENSE                  # MIT License
 ```
 
 ## 📄 ライセンス
@@ -107,8 +137,10 @@ MIT Licenseです。全文は[LICENSE](LICENSE)を参照してください。
 
 - [RFC 894: A Standard for the Transmission of IP Datagrams over Ethernet Networks](https://www.rfc-editor.org/rfc/rfc894.html)
 - [RFC 791: Internet Protocol](https://www.rfc-editor.org/rfc/rfc791.html)
+- [RFC 768: User Datagram Protocol](https://www.rfc-editor.org/rfc/rfc768.html)
+- [RFC 5737: IPv4 Address Blocks Reserved for Documentation](https://www.rfc-editor.org/rfc/rfc5737.html)
 
 ## 🛠️ このツールについて
 
-本ツールは、「生成AIで作るセキュリティツール200」プロジェクトの一環として開発します。
+本ツールは、「生成AIで作るセキュリティツール200」プロジェクトの一環として開発しました。
 プロジェクトの詳細は[生成AIで作るセキュリティツール200](https://akademeia.info/?page_id=44607)をご覧ください。

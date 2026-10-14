@@ -5,39 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#102238">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; connect-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'; connect-src 'none'">
   <title>Hex Dump Trainer | Day114</title>
-  <meta name="description" content="Hex Dump Trainer is in preparation. Ethernet II and IPv4 hex dump exercises are coming soon.">
+  <meta name="description" content="Learn to read Ethernet II and IPv4 headers from hex dumps, byte by byte.">
   <link rel="stylesheet" href="style.css">
+  <script src="core.js" defer></script>
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
+  <a id="skip-link" class="skip-link" href="#question-title">問題へ移動</a>
   <main class="page">
     <header class="hero">
-      <p class="eyebrow">Day114 · Security Tools with Generative AI 200</p>
-      <p class="status">開発準備中 <span lang="en">/ Coming soon</span></p>
+      <div class="hero-top">
+        <p class="eyebrow">Day114 · Security Tools with Generative AI 200</p>
+        <button id="language-button" class="language-button" type="button" lang="en" aria-label="Switch to English">English</button>
+      </div>
       <h1>Hex Dump Trainer</h1>
-      <p class="lead">16進ダンプを、バイトの位置から読めるように。</p>
+      <p id="lead" class="lead">16進ダンプを、バイトの位置から読めるように。</p>
     </header>
 
-    <div class="language-grid">
-      <section class="panel" aria-labelledby="about-ja">
-        <h2 id="about-ja">このツールについて</h2>
-        <p>Ethernet IIとIPv4のヘッダーを、自分でバイトの位置を探しながら読む演習ツールを準備しています。</p>
-        <p>現在は演習機能を利用できません。初版では、16進ダンプを初めて見る人向けの短い導入と、書籍なしで使える内蔵教材を予定しています。</p>
-      </section>
+    <section id="intro-guide" class="panel guide" aria-labelledby="guide-title">
+      <h2 id="guide-title">最初に：16進ダンプの読み方</h2>
+      <p id="guide-one"></p>
+      <p id="guide-two"></p>
+      <p id="guide-three"></p>
+      <button id="skip-intro" class="secondary-button" type="button">導入をスキップしてEthernet IIへ</button>
+    </section>
 
-      <section class="panel" lang="en" aria-labelledby="about-en">
-        <h2 id="about-en">About this project</h2>
-        <p>We are preparing exercises for locating bytes in hex dumps and reading Ethernet II and IPv4 headers.</p>
-        <p>The exercises are not available yet. The first release is planned to include a short introduction for beginners and original samples that require no book.</p>
+    <div class="workspace">
+      <nav class="panel lessons" aria-labelledby="lessons-title">
+        <h2 id="lessons-title">教材</h2>
+        <p id="lesson-note" class="small-note"></p>
+        <div id="lesson-list" class="lesson-list"></div>
+      </nav>
+
+      <section class="panel exercise" aria-labelledby="question-title">
+        <p id="question-count" class="question-count"></p>
+        <h2 id="question-title" tabindex="-1">問題</h2>
+        <p id="question-prompt" class="question-prompt"></p>
+
+        <div class="dump-heading">
+          <h3 id="dump-title">16進ダンプ</h3>
+          <p id="dump-note" class="small-note"></p>
+        </div>
+        <div id="dump" class="dump" role="region" tabindex="0" aria-labelledby="dump-title"></div>
+        <p id="selection-preview" class="selection-preview" aria-live="polite"></p>
+
+        <form id="answer-form" novalidate>
+          <div id="range-fields" class="range-fields">
+            <label><span id="start-label">開始オフセット（10進数）</span>
+              <input id="start-offset" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+            </label>
+            <label><span id="end-label">終了オフセット（10進数）</span>
+              <input id="end-offset" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+            </label>
+          </div>
+          <div id="value-field" class="value-field" hidden>
+            <label for="answer-input" id="value-label">答え</label>
+            <input id="answer-input" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <button id="check-button" class="primary-button" type="submit">答え合わせ</button>
+        </form>
+
+        <div class="help-actions">
+          <button id="hint-button" class="secondary-button" type="button">ヒント</button>
+          <button id="reveal-button" class="text-button" type="button">答えを見る</button>
+        </div>
+        <p id="hint-text" class="hint-text" aria-live="polite"></p>
+        <p id="feedback" class="feedback" aria-live="polite"></p>
+        <section id="solution" class="solution" aria-labelledby="solution-title" hidden>
+          <h3 id="solution-title">解答と根拠</h3>
+          <dl>
+            <div><dt id="solution-range-label">バイト範囲</dt><dd id="solution-range"></dd></div>
+            <div><dt id="solution-hex-label">元の16進値</dt><dd id="solution-hex"></dd></div>
+            <div><dt id="solution-value-label">読み取った値</dt><dd id="solution-value"></dd></div>
+            <div><dt id="solution-steps-label">読み方</dt><dd id="solution-steps"></dd></div>
+          </dl>
+        </section>
+        <button id="next-button" class="primary-button next-button" type="button" hidden>次の問題へ</button>
       </section>
     </div>
 
-    <nav class="links" aria-label="関連リンク">
-      <a href="https://github.com/ipusiron/hex-dump-trainer">GitHub・README / Source and documentation</a>
-    </nav>
+    <p id="scope-note" class="scope-note"></p>
+    <noscript><p>この演習にはJavaScriptが必要です。 / JavaScript is required for the exercises.</p></noscript>
   </main>
 
-  <footer class="footer">© 2026 ipusiron · <a href="https://github.com/ipusiron/hex-dump-trainer/blob/main/LICENSE">MIT License</a></footer>
+  <footer class="footer">© 2026 ipusiron · <a href="https://github.com/ipusiron/hex-dump-trainer">GitHub / README</a> · <a href="https://github.com/ipusiron/hex-dump-trainer/blob/main/LICENSE">MIT License</a></footer>
 </body>
 </html>
