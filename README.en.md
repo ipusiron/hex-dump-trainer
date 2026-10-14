@@ -13,6 +13,7 @@
 Hex Dump Trainer is an interactive learning tool for finding byte positions in a hex dump and reading Ethernet II and IPv4 headers.
 If you are new to hex dumps, you can start with a short introduction.
 No book is required.
+The Learn tab uses a built-in frame to explain Ethernet II, IPv4, and UDP, with links to the relevant RFCs.
 
 ## 🌐 Live app
 
@@ -24,21 +25,25 @@ The exercises run in a browser and use original frames; no book is required.
 
 ![The introduction question, hex dump, and lesson list](assets/screenshot-desktop.png)
 
+![The Learn tab explaining Ethernet II, IPv4, UDP, and the related RFCs](assets/screenshot-learning.png)
+
 ## ✨ What you will learn
 
 - How zero-based offsets correspond to byte positions
 - How to locate Ethernet II destination and source MAC addresses and EtherType
 - How to read IPv4 Version, IHL, Total Length, TTL, Protocol, and source and destination addresses
 - How to calculate the IPv4 header length from IHL
+- How to locate and read UDP ports, Length, and Checksum in the Learn tab (UDP is not graded)
 
 ## 📖 How to use
 
-1. Complete the two introductory questions or skip to Ethernet II. You can switch lessons at any time.
-2. For range questions, select the start and end bytes. Decimal offset inputs provide an alternative for small screens and keyboards.
-3. For value and calculation questions, enter the notation requested in the question.
-4. Check your answer. You can retry after a wrong answer. Hints progress through header, relative offset, and answer reveal; Show answer reveals it directly.
+1. Use the Learn tab to review header boundaries, field decoding, and links to RFCs. Switching back to Exercises keeps the answer you were entering.
+2. Complete the two introductory questions or skip to Ethernet II. You can switch lessons at any time.
+3. For range questions, select the start and end bytes. Decimal offset inputs provide an alternative for small screens and keyboards.
+4. For value and calculation questions, enter the notation requested in the question.
+5. Check your answer. You can retry after a wrong answer. Hints progress through header, relative offset, and answer reveal; Show answer reveals it directly.
 
-Changing languages preserves the current question, selection, input, and result. Switching lessons starts the selected lesson unanswered while keeping its completion record.
+Changing languages preserves the active tab, current question, selection, input, and result. Switching lessons starts the selected lesson unanswered while keeping its completion record.
 
 ## 🔧 Getting started
 
@@ -59,7 +64,7 @@ The bytes are `00 30`. Read in network byte order, they form `0x0030`, or `48` b
 ## ⚠️ Scope and limitations
 
 The lessons use Ethernet II frames containing IPv4 headers without options. The sample byte arrays omit the frame check sequence (FCS).
-Their UDP datagrams have consistent lengths and checksums, but UDP fields are not graded.
+Their UDP datagrams have consistent lengths and checksums. The Learn tab explains their structure, but UDP fields are not graded.
 VLAN, IPv6, ARP, fragmentation, IPv4 options, pasted hex dumps, ICMPv4, and pcap/pcapng import are not supported.
 
 ## 🔒 Data and privacy
@@ -83,9 +88,10 @@ hex-dump-trainer/
 ├── .github/workflows/test.yml # Test CI
 ├── .gitignore               # Exclude local secrets and generated files
 ├── assets/screenshot-desktop.png # Interface screenshot
-├── index.html               # Exercise interface
+├── assets/screenshot-learning.png # Learn tab screenshot
+├── index.html               # Exercise and learning interface
 ├── style.css                # Mobile-first styles
-├── app.js                   # Interface and progress
+├── app.js                   # Interface, tabs, and progress
 ├── core.js                  # Byte reading and grading
 ├── data.js                  # Versioned original lessons
 ├── test/                    # Dependency-free tests
@@ -103,6 +109,7 @@ This project uses the MIT License. See [LICENSE](LICENSE) for the full text.
 - [RFC 894: A Standard for the Transmission of IP Datagrams over Ethernet Networks](https://www.rfc-editor.org/rfc/rfc894.html)
 - [RFC 791: Internet Protocol](https://www.rfc-editor.org/rfc/rfc791.html)
 - [RFC 768: User Datagram Protocol](https://www.rfc-editor.org/rfc/rfc768.html)
+- [IANA: Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/)
 - [RFC 5737: IPv4 Address Blocks Reserved for Documentation](https://www.rfc-editor.org/rfc/rfc5737.html)
 
 ## 🛠️ About this tool

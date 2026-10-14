@@ -47,6 +47,7 @@ hub: false
 Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Ethernet IIとIPv4のヘッダーを自分で読み解く演習ツールです。
 16進ダンプを初めて見る人は、短い導入練習から始められます。
 書籍がなくても使えます。
+「学習」タブでは、内蔵フレームを例にEthernet II、IPv4、UDPの読み方と関連RFCを確認できます。
 
 ## 🌐 デモページ
 
@@ -58,21 +59,25 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 ![入門問題、16進ダンプ、教材一覧を表示した画面](assets/screenshot-desktop.png)
 
+![Ethernet II、IPv4、UDPのフィールドとRFCを説明する学習タブ](assets/screenshot-learning.png)
+
 ## ✨ 学べること
 
 - ゼロ始まりのオフセットとバイトの位置の対応
 - Ethernet IIの宛先MACアドレス、送信元MACアドレス、EtherType
 - IPv4のVersion、IHL、Total Length、TTL、Protocol、送信元アドレス、宛先アドレス
 - IHLからのIPv4ヘッダー長の計算
+- 学習タブでのUDPヘッダーの位置、ポート、Length、Checksumの読み方（UDPは採点対象外）
 
 ## 📖 使い方
 
-1. 入門の2問から始めるか、導入をスキップしてEthernet IIへ進みます。教材一覧からいつでも切り替えられます。
-2. 位置問題では開始・終了のバイトを順に選びます。小さい画面やキーボード操作では、10進数のオフセット入力も使えます。
-3. 値問題・計算問題では、問題文で指定された表記の答えを入力します。
-4. 「答え合わせ」で確認します。誤答なら再挑戦でき、ヒントは対象ヘッダー→相対位置→解答表示の3段階です。「答えを見る」でも解答を表示できます。
+1. 「学習」タブでヘッダーの境界、各フィールドの読み方、RFCへのリンクを確認できます。「演習」タブへ戻っても入力中の答えは保持されます。
+2. 入門の2問から始めるか、導入をスキップしてEthernet IIへ進みます。教材一覧からいつでも切り替えられます。
+3. 位置問題では開始と終了のバイトを順に選びます。小さい画面やキーボード操作では、10進数のオフセット入力も使えます。
+4. 値問題と計算問題では、問題文で指定された表記の答えを入力します。
+5. 「答え合わせ」で確認します。誤答なら再挑戦でき、ヒントは対象ヘッダー→相対位置→解答表示の3段階です。「答えを見る」でも解答を表示できます。
 
-日英を切り替えても、表示中の問題、選択範囲、入力値、結果は保持されます。教材の切り替え時は、その教材の問題が未回答状態から始まり、完了記録は残ります。
+日英を切り替えても、開いているタブ、表示中の問題、選択範囲、入力値、結果は保持されます。教材の切り替え時は、その教材の問題が未回答状態から始まり、完了記録は残ります。
 
 ## 🔧 起動方法
 
@@ -94,7 +99,7 @@ IPv4教材のTotal Lengthは、フレーム先頭からの絶対オフセット`
 
 教材はオプションなしのIPv4を含むEthernet IIフレームに限定します。
 教材のバイト列にフレームチェックシーケンス（FCS）は含めません。
-後続データは長さ・チェックサムが整合したUDPデータグラムですが、UDPのフィールドは採点しません。
+後続データは長さとチェックサムが整合したUDPデータグラムです。学習タブでその構造を説明しますが、UDPのフィールドは採点しません。
 VLAN、IPv6、ARP、IPフラグメント、IPv4オプション、自分の16進ダンプの貼り付け、ICMPv4、pcap/pcapngの読込には対応しません。
 
 ## 🔒 データとプライバシー
@@ -103,7 +108,7 @@ VLAN、IPv6、ARP、IPフラグメント、IPv4オプション、自分の16進�
 
 ## 🧪 開発と検証
 
-HTML/CSS/JavaScriptのみで動作し、依存パッケージはありません。Node.js 22で次を実行すると、採点、全21問、4つの教材フレームのIPv4/UDP長・チェックサムを検証できます。
+HTML/CSS/JavaScriptのみで動作し、依存パッケージはありません。Node.js 22で次を実行すると、採点、全21問、4つの教材フレームのIPv4/UDP長とチェックサムを検証できます。
 
 ```sh
 node --test test/*.test.js
@@ -118,10 +123,11 @@ hex-dump-trainer/
 ├── .github/workflows/test.yml # テストCI
 ├── .gitignore               # ローカルの機密ファイルなどを除外
 ├── assets/screenshot-desktop.png # 画面例
-├── index.html               # 演習画面
+├── assets/screenshot-learning.png # 学習タブの画面例
+├── index.html               # 演習と学習の画面
 ├── style.css                # モバイル優先のスタイル
-├── app.js                   # 画面と進捗
-├── core.js                  # バイト読取・採点
+├── app.js                   # 画面、タブ、進捗
+├── core.js                  # バイト読取と採点
 ├── data.js                  # バージョン付き自作教材
 ├── test/                    # 依存なしの自動テスト
 ├── README.md                # 日本語版
@@ -138,6 +144,7 @@ MIT Licenseです。全文は[LICENSE](LICENSE)を参照してください。
 - [RFC 894: A Standard for the Transmission of IP Datagrams over Ethernet Networks](https://www.rfc-editor.org/rfc/rfc894.html)
 - [RFC 791: Internet Protocol](https://www.rfc-editor.org/rfc/rfc791.html)
 - [RFC 768: User Datagram Protocol](https://www.rfc-editor.org/rfc/rfc768.html)
+- [IANA: Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/)
 - [RFC 5737: IPv4 Address Blocks Reserved for Documentation](https://www.rfc-editor.org/rfc/rfc5737.html)
 
 ## 🛠️ このツールについて

@@ -1,0 +1,55 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const core = require('../core.js');
+const data = require('../data.js');
+
+const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const bytes = core.parseHex(data.frames.ipv4.hex);
+
+function raw(start, end) {
+  return Array.from(bytes.slice(start, end + 1), value => value.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+}
+
+function word(start) {
+  return (bytes[start] << 8) | bytes[start + 1];
+}
+
+test('learning examples in both languages match the versioned IPv4 lesson frame', () => {
+  const examples = [
+    raw(0, 5), raw(6, 11), raw(12, 13), raw(16, 17), raw(24, 25),
+    raw(26, 29), raw(30, 33), raw(34, 35), raw(36, 37), raw(38, 39), raw(40, 41)
+  ];
+  assert.equal(bytes.length, 62);
+  assert.equal(bytes[14], 0x45);
+  assert.equal(word(16), 48);
+  assert.equal(bytes[22], 128);
+  assert.equal(bytes[23], 17);
+  assert.equal(word(34), 55000);
+  assert.equal(word(36), 53);
+  assert.equal(word(38), 28);
+
+  for (const locale of ['ja', 'en']) {
+    const section = html.split(`<div id="learn-${locale}"`)[1];
+    assert.ok(section, `missing ${locale} learning content`);
+    for (const hex of examples) {
+      assert.ok(section.includes(`<code>${hex}</code>`), `${locale} is missing ${hex}`);
+    }
+    for (const url of [
+      'https://datatracker.ietf.org/doc/html/rfc894',
+      'https://www.rfc-editor.org/rfc/rfc791.html',
+      'https://www.rfc-editor.org/rfc/rfc768.html',
+      'https://www.iana.org/assignments/protocol-numbers/'
+    ]) {
+      assert.ok(section.includes(`href="${url}" target="_blank" rel="noopener noreferrer"`));
+    }
+  }
+});
+
+test('exercise and learning tabs have accessible relationships', () => {
+  assert.match(html, /id="practice-tab"[^>]*role="tab"[^>]*aria-controls="practice-panel"/);
+  assert.match(html, /id="learn-tab"[^>]*role="tab"[^>]*aria-controls="learn-panel"/);
+  assert.match(html, /id="practice-panel"[^>]*role="tabpanel"[^>]*aria-labelledby="practice-tab"/);
+  assert.match(html, /id="learn-panel"[^>]*role="tabpanel"[^>]*aria-labelledby="learn-tab"/);
+});

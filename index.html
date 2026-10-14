@@ -25,6 +25,13 @@
       <p id="lead" class="lead">16進ダンプを、バイトの位置から読めるように。</p>
     </header>
 
+    <nav class="main-tabs" role="tablist" aria-label="表示を選択">
+      <button id="practice-tab" class="main-tab" type="button" role="tab" aria-controls="practice-panel" aria-selected="true" tabindex="0">演習</button>
+      <button id="learn-tab" class="main-tab" type="button" role="tab" aria-controls="learn-panel" aria-selected="false" tabindex="-1">学習</button>
+    </nav>
+
+    <div id="practice-panel" role="tabpanel" aria-labelledby="practice-tab" tabindex="0">
+
     <section id="intro-guide" class="panel guide" aria-labelledby="guide-title">
       <h2 id="guide-title">最初に：16進ダンプの読み方</h2>
       <p id="guide-one"></p>
@@ -89,6 +96,127 @@
 
     <p id="scope-note" class="scope-note"></p>
     <noscript><p>この演習にはJavaScriptが必要です。 / JavaScript is required for the exercises.</p></noscript>
+    </div>
+
+    <section id="learn-panel" class="learning-panel" role="tabpanel" aria-labelledby="learn-tab" tabindex="0" hidden>
+      <h2 id="learn-title">パケットの読み方</h2>
+
+      <div id="learn-ja" lang="ja">
+        <p class="learning-lead">IPv4教材の自作フレームを例に、外側のヘッダーから順に読みます。位置はフレーム先頭を0とする絶対オフセットです。</p>
+        <nav class="learning-toc" aria-label="学習項目">
+          <a href="#learn-ethernet-ja">Ethernet II</a>
+          <a href="#learn-ipv4-ja">IPv4</a>
+          <a href="#learn-udp-ja">UDP</a>
+        </nav>
+        <section class="panel learning-card" aria-labelledby="learn-map-ja">
+          <h3 id="learn-map-ja">3つのヘッダーの境界</h3>
+          <p>行頭の<code>0010</code>は16進数のオフセットで、10進数では16です。1行に8バイトあるので、行頭だけでフィールドの位置を決めず、バイトを数えます。</p>
+          <ol class="packet-stack">
+            <li><code>0〜13</code><span>Ethernet IIヘッダー（14バイト）</span></li>
+            <li><code>14〜33</code><span>IPv4ヘッダー（IHL 5 × 4 = 20バイト）</span></li>
+            <li><code>34〜41</code><span>UDPヘッダー（8バイト）</span></li>
+            <li><code>42〜61</code><span>UDPデータ（20バイト）</span></li>
+          </ol>
+          <p class="small-note">この範囲は掲載例の値です。他の教材もヘッダーの開始位置は同じですが、データの長さは異なります。教材にVLANタグやIPv4オプションはなく、FCSもダンプに含めません。UDPフィールドは学習用に説明しますが、現行の演習では採点しません。</p>
+        </section>
+        <article id="learn-ethernet-ja" class="panel learning-card" aria-labelledby="learn-ethernet-title-ja">
+          <h3 id="learn-ethernet-title-ja">Ethernet II：次のヘッダーを見つける</h3>
+          <p>最初の6バイトが宛先MACアドレス、次の6バイトが送信元MACアドレスです。続く2バイトのEtherTypeで、後ろに入るデータの種類を確認します。</p>
+          <dl class="learning-fields">
+            <div><dt><code>0〜5</code> 宛先MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
+            <div><dt><code>6〜11</code> 送信元MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
+            <div><dt><code>12〜13</code> EtherType</dt><dd><code>08 00</code>を順に読んで<code>0x0800</code>。後続はIPv4で、オフセット14から始まります。</dd></div>
+          </dl>
+          <p class="learning-reference">参照：<a href="https://datatracker.ietf.org/doc/html/rfc894" target="_blank" rel="noopener noreferrer">RFC 894（別タブ）</a>。EthernetでIPv4を運ぶときのType値<code>0x0800</code>と、IPヘッダーをデータ領域の先頭に置く規定を確認できます。</p>
+        </article>
+        <article id="learn-ipv4-ja" class="panel learning-card" aria-labelledby="learn-ipv4-title-ja">
+          <h3 id="learn-ipv4-title-ja">IPv4：長さと上位プロトコルを読む</h3>
+          <p>IPv4ヘッダーの先頭は絶対オフセット14です。以下の位置から14を引くと、IPv4ヘッダー内の相対オフセットになります。</p>
+          <dl class="learning-fields">
+            <div><dt><code>14</code> Version / IHL</dt><dd><code>45</code>の上位4ビットがVersion <code>4</code>、下位4ビットがIHL <code>5</code>。ヘッダー長は<code>5 × 4 = 20</code>バイトです。</dd></div>
+            <div><dt><code>16〜17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code>バイト。IPv4ヘッダーとその後ろのデータを含み、Ethernet IIの14バイトは含みません。</dd></div>
+            <div><dt><code>22</code> TTL</dt><dd><code>80</code> → 10進数で<code>128</code>。転送中に減る寿命の値です。</dd></div>
+            <div><dt><code>23</code> Protocol</dt><dd><code>11</code> → 10進数で<code>17</code>。後続はUDPです。</dd></div>
+            <div><dt><code>24〜25</code> Header Checksum</dt><dd><code>63 E6</code>。検査対象はIPv4ヘッダーで、UDPデータは含みません。</dd></div>
+            <div><dt><code>26〜29</code> 送信元IP</dt><dd><code>C6 33 64 4D</code>を1バイトずつ10進数へ変換して<code>198.51.100.77</code>。</dd></div>
+            <div><dt><code>30〜33</code> 宛先IP</dt><dd><code>CB 00 71 52</code> → <code>203.0.113.82</code>。</dd></div>
+          </dl>
+          <p>この例ではIHLが5なので、UDPは<code>14 + 20 = 34</code>から始まります。IHLが変わるパケットでは、この開始位置も変わります。</p>
+          <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc791.html" target="_blank" rel="noopener noreferrer">RFC 791（別タブ）</a>のInternet Header Formatで各フィールドの幅と意味を確認できます。Protocol値17の登録は<a href="https://www.iana.org/assignments/protocol-numbers/" target="_blank" rel="noopener noreferrer">IANA Protocol Numbers（別タブ）</a>を参照してください。</p>
+        </article>
+        <article id="learn-udp-ja" class="panel learning-card" aria-labelledby="learn-udp-title-ja">
+          <h3 id="learn-udp-title-ja">UDP：ポートとデータ長を読む</h3>
+          <p>IPv4のProtocolが17なので、IPv4ヘッダーの後ろをUDPとして読みます。この例のUDPヘッダーは絶対オフセット34から8バイトです。</p>
+          <dl class="learning-fields">
+            <div><dt><code>34〜35</code> 送信元ポート</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>。</dd></div>
+            <div><dt><code>36〜37</code> 宛先ポート</dt><dd><code>00 35</code> → <code>53</code>。</dd></div>
+            <div><dt><code>38〜39</code> Length</dt><dd><code>00 1C</code> → <code>28</code>バイト。UDPヘッダー8バイトとデータ20バイトを含みます。</dd></div>
+            <div><dt><code>40〜41</code> Checksum</dt><dd><code>FD 29</code>。計算にはUDPだけでなく、IPv4の送信元アドレスと宛先アドレスなどを含む疑似ヘッダーも使います。</dd></div>
+          </dl>
+          <p>データはオフセット42からです。ポート番号だけでアプリケーションの内容を断定しないでください。このツールはUDPのポートやチェックサムを採点しません。</p>
+          <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768（別タブ）</a>のFormatとFieldsで、4つのUDPフィールドとLengthの範囲、チェックサムの疑似ヘッダーを確認できます。</p>
+        </article>
+        <button class="primary-button back-to-practice" type="button" data-open-practice>演習へ戻る</button>
+      </div>
+
+      <div id="learn-en" lang="en" hidden>
+        <p class="learning-lead">Follow the headers from the outside inward using the original frame in the IPv4 lesson. All positions below are zero-based offsets from the start of the Ethernet frame.</p>
+        <nav class="learning-toc" aria-label="Learning topics">
+          <a href="#learn-ethernet-en">Ethernet II</a>
+          <a href="#learn-ipv4-en">IPv4</a>
+          <a href="#learn-udp-en">UDP</a>
+        </nav>
+        <section class="panel learning-card" aria-labelledby="learn-map-en">
+          <h3 id="learn-map-en">Where the three headers begin and end</h3>
+          <p>The row label <code>0010</code> is a hexadecimal offset: 16 in decimal. Each row shows eight bytes, so count the bytes rather than treating a row label as a field boundary.</p>
+          <ol class="packet-stack">
+            <li><code>0–13</code><span>Ethernet II header (14 bytes)</span></li>
+            <li><code>14–33</code><span>IPv4 header (IHL 5 × 4 = 20 bytes)</span></li>
+            <li><code>34–41</code><span>UDP header (8 bytes)</span></li>
+            <li><code>42–61</code><span>UDP data (20 bytes)</span></li>
+          </ol>
+          <p class="small-note">These ranges belong to this example. Other lessons share the header start positions but have different data lengths. The lessons contain no VLAN tag or IPv4 options, and the dump omits FCS. UDP fields are explained here but are not graded in the current exercises.</p>
+        </section>
+        <article id="learn-ethernet-en" class="panel learning-card" aria-labelledby="learn-ethernet-title-en">
+          <h3 id="learn-ethernet-title-en">Ethernet II: find the next header</h3>
+          <p>The first six bytes hold the destination MAC address, followed by six bytes for the source MAC address. The two-byte EtherType identifies the type of data that follows.</p>
+          <dl class="learning-fields">
+            <div><dt><code>0–5</code> Destination MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
+            <div><dt><code>6–11</code> Source MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
+            <div><dt><code>12–13</code> EtherType</dt><dd>Read <code>08 00</code> in order as <code>0x0800</code>. IPv4 follows at offset 14.</dd></div>
+          </dl>
+          <p class="learning-reference">Reference: <a href="https://datatracker.ietf.org/doc/html/rfc894" target="_blank" rel="noopener noreferrer">RFC 894 (new tab)</a> specifies the Ethernet Type value <code>0x0800</code> for IPv4 and places the IP header at the start of the data field.</p>
+        </article>
+        <article id="learn-ipv4-en" class="panel learning-card" aria-labelledby="learn-ipv4-title-en">
+          <h3 id="learn-ipv4-title-en">IPv4: read length and next protocol</h3>
+          <p>The IPv4 header starts at absolute offset 14. Subtract 14 from a position below to get its offset relative to the IPv4 header.</p>
+          <dl class="learning-fields">
+            <div><dt><code>14</code> Version / IHL</dt><dd>In <code>45</code>, the upper four bits give Version <code>4</code> and the lower four bits give IHL <code>5</code>. Header length is <code>5 × 4 = 20</code> bytes.</dd></div>
+            <div><dt><code>16–17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code> bytes. This includes the IPv4 header and its data, but not the 14-byte Ethernet II header.</dd></div>
+            <div><dt><code>22</code> TTL</dt><dd><code>80</code> → <code>128</code> in decimal. This lifetime value is reduced during forwarding.</dd></div>
+            <div><dt><code>23</code> Protocol</dt><dd><code>11</code> → <code>17</code> in decimal, indicating UDP.</dd></div>
+            <div><dt><code>24–25</code> Header Checksum</dt><dd><code>63 E6</code>. It covers the IPv4 header, not the UDP data.</dd></div>
+            <div><dt><code>26–29</code> Source IP</dt><dd>Convert each byte of <code>C6 33 64 4D</code> to decimal: <code>198.51.100.77</code>.</dd></div>
+            <div><dt><code>30–33</code> Destination IP</dt><dd><code>CB 00 71 52</code> → <code>203.0.113.82</code>.</dd></div>
+          </dl>
+          <p>With IHL 5, UDP starts at <code>14 + 20 = 34</code>. A packet with a different IHL would move this boundary.</p>
+          <p class="learning-reference">Reference: the Internet Header Format in <a href="https://www.rfc-editor.org/rfc/rfc791.html" target="_blank" rel="noopener noreferrer">RFC 791 (new tab)</a> defines these field widths and meanings. See the <a href="https://www.iana.org/assignments/protocol-numbers/" target="_blank" rel="noopener noreferrer">IANA Protocol Numbers registry (new tab)</a> for the assignment of 17 to UDP.</p>
+        </article>
+        <article id="learn-udp-en" class="panel learning-card" aria-labelledby="learn-udp-title-en">
+          <h3 id="learn-udp-title-en">UDP: read ports and length</h3>
+          <p>IPv4 Protocol 17 identifies the next header as UDP. In this example, its eight-byte header begins at absolute offset 34.</p>
+          <dl class="learning-fields">
+            <div><dt><code>34–35</code> Source Port</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>.</dd></div>
+            <div><dt><code>36–37</code> Destination Port</dt><dd><code>00 35</code> → <code>53</code>.</dd></div>
+            <div><dt><code>38–39</code> Length</dt><dd><code>00 1C</code> → <code>28</code> bytes, including the eight-byte UDP header and 20 data bytes.</dd></div>
+            <div><dt><code>40–41</code> Checksum</dt><dd><code>FD 29</code>. Its calculation also uses a pseudo-header containing the IPv4 source and destination addresses, among other values.</dd></div>
+          </dl>
+          <p>Data begins at offset 42. A port number alone does not establish the application content. This tool does not grade UDP ports or checksums.</p>
+          <p class="learning-reference">Reference: the Format and Fields sections of <a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768 (new tab)</a> define the four UDP fields, the Length coverage, and the checksum pseudo-header.</p>
+        </article>
+        <button class="primary-button back-to-practice" type="button" data-open-practice>Return to exercises</button>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">© 2026 ipusiron · <a href="https://github.com/ipusiron/hex-dump-trainer">GitHub / README</a> · <a href="https://github.com/ipusiron/hex-dump-trainer/blob/main/LICENSE">MIT License</a></footer>
