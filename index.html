@@ -103,6 +103,7 @@
 
       <div id="learn-ja" lang="ja">
         <p class="learning-lead">IPv4教材の自作フレームを例に、外側のヘッダーから順に読みます。各図の箱の幅はフィールドの長さ、箱内の値は教材の実際の値です。左端はフレーム先頭を0とする10進数のバイト位置です。</p>
+        <p class="learning-interaction-note">図の項目か解説行にカーソルを合わせると、対応箇所を強調します。タップで選択でき、同じ項目をもう一度タップすると解除できます。キーボードでは図の項目に移動し、EnterかSpaceで選択できます。</p>
         <nav class="learning-toc" aria-label="学習項目">
           <a href="#learn-ethernet-ja">Ethernet II</a>
           <a href="#learn-ipv4-ja">IPv4</a>
@@ -127,14 +128,14 @@
             <div class="diagram-scroll" role="region" aria-label="Ethernet IIヘッダーの配置図" tabindex="0">
               <div class="diagram-layout">
                 <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-byte-axis" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">0〜13</span><div class="diagram-cells diagram-cells--bytes"><span class="diagram-field span-6"><strong>宛先MAC</strong><code>02 FE DC BA 98 76</code></span><span class="diagram-field span-6"><strong>送信元MAC</strong><code>02 12 34 56 78 9A</code></span><span class="diagram-field span-2"><strong>Type</strong><code>08 00</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">0〜13</span><div class="diagram-cells diagram-cells--bytes"><span class="diagram-field span-6" data-learn-field="ether-dst"><strong>宛先MAC</strong><code>02 FE DC BA 98 76</code></span><span class="diagram-field span-6" data-learn-field="ether-src"><strong>送信元MAC</strong><code>02 12 34 56 78 9A</code></span><span class="diagram-field span-2" data-learn-field="ether-type"><strong>Type</strong><code>08 00</code></span></div></div>
               </div>
             </div>
           </figure>
           <dl class="learning-fields">
-            <div><dt><code>0〜5</code> 宛先MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
-            <div><dt><code>6〜11</code> 送信元MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
-            <div><dt><code>12〜13</code> EtherType</dt><dd><code>08 00</code>を順に読んで<code>0x0800</code>。後続はIPv4で、オフセット14から始まります。</dd></div>
+            <div data-learn-field="ether-dst"><dt><code>0〜5</code> 宛先MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
+            <div data-learn-field="ether-src"><dt><code>6〜11</code> 送信元MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
+            <div data-learn-field="ether-type"><dt><code>12〜13</code> EtherType</dt><dd><code>08 00</code>を順に読んで<code>0x0800</code>。後続はIPv4で、オフセット14から始まります。</dd></div>
           </dl>
           <p class="learning-reference">参照：<a href="https://datatracker.ietf.org/doc/html/rfc894" target="_blank" rel="noopener noreferrer">RFC 894（別タブ）</a>。EthernetでIPv4を運ぶときのType値<code>0x0800</code>と、IPヘッダーをデータ領域の先頭に置く規定を確認できます。</p>
         </article>
@@ -146,22 +147,27 @@
             <div class="diagram-scroll" role="region" aria-label="IPv4ヘッダーの32ビット配置図" tabindex="0">
               <div class="diagram-layout">
                 <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0〜7</span><span>8〜15</span><span>16〜23</span><span>24〜31</span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">14〜17</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-4"><strong>Ver</strong><code>4</code></span><span class="diagram-field span-4"><strong>IHL</strong><code>5</code></span><span class="diagram-field span-8"><strong>ToS</strong><code>00</code></span><span class="diagram-field span-16"><strong>Total Length</strong><code>00 30</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">18〜21</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Identification</strong><code>30 03</code></span><span class="diagram-field span-3"><strong>Flags</strong><code>010</code></span><span class="diagram-field span-13"><strong>Fragment Offset</strong><code>0</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">22〜25</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8"><strong>TTL</strong><code>80</code></span><span class="diagram-field span-8"><strong>Protocol</strong><code>11</code></span><span class="diagram-field span-16"><strong>Header Checksum</strong><code>63 E6</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">26〜29</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Source Address</strong><code>C6 33 64 4D</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">30〜33</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Destination Address</strong><code>CB 00 71 52</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">14〜17</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-4" data-learn-field="ip-version"><strong>Ver</strong><code>4</code></span><span class="diagram-field span-4" data-learn-field="ip-ihl"><strong>IHL</strong><code>5</code></span><span class="diagram-field span-8" data-learn-field="ip-tos"><strong>ToS</strong><code>00</code></span><span class="diagram-field span-16" data-learn-field="ip-total"><strong>Total Length</strong><code>00 30</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">18〜21</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="ip-id"><strong>Identification</strong><code>30 03</code></span><span class="diagram-field span-3" data-learn-field="ip-flags"><strong>Flags</strong><code>010</code></span><span class="diagram-field span-13" data-learn-field="ip-fragment"><strong>Fragment Offset</strong><code>0</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">22〜25</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8" data-learn-field="ip-ttl"><strong>TTL</strong><code>80</code></span><span class="diagram-field span-8" data-learn-field="ip-protocol"><strong>Protocol</strong><code>11</code></span><span class="diagram-field span-16" data-learn-field="ip-checksum"><strong>Header Checksum</strong><code>63 E6</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">26〜29</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32" data-learn-field="ip-src"><strong>Source Address</strong><code>C6 33 64 4D</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">30〜33</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32" data-learn-field="ip-dst"><strong>Destination Address</strong><code>CB 00 71 52</code></span></div></div>
               </div>
             </div>
           </figure>
           <dl class="learning-fields">
-            <div><dt><code>14</code> Version / IHL</dt><dd><code>45</code>の上位4ビットがVersion <code>4</code>、下位4ビットがIHL <code>5</code>。ヘッダー長は<code>5 × 4 = 20</code>バイトです。</dd></div>
-            <div><dt><code>16〜17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code>バイト。IPv4ヘッダーとその後ろのデータを含み、Ethernet IIの14バイトは含みません。</dd></div>
-            <div><dt><code>22</code> TTL</dt><dd><code>80</code> → 10進数で<code>128</code>。転送中に減る寿命の値です。</dd></div>
-            <div><dt><code>23</code> Protocol</dt><dd><code>11</code> → 10進数で<code>17</code>。後続はUDPです。</dd></div>
-            <div><dt><code>24〜25</code> Header Checksum</dt><dd><code>63 E6</code>。検査対象はIPv4ヘッダーで、UDPデータは含みません。</dd></div>
-            <div><dt><code>26〜29</code> 送信元IP</dt><dd><code>C6 33 64 4D</code>を1バイトずつ10進数へ変換して<code>198.51.100.77</code>。</dd></div>
-            <div><dt><code>30〜33</code> 宛先IP</dt><dd><code>CB 00 71 52</code> → <code>203.0.113.82</code>。</dd></div>
+            <div data-learn-field="ip-version"><dt><code>14</code> Version</dt><dd><code>45</code>の上位4ビットが<code>4</code>。IPv4を示します。</dd></div>
+            <div data-learn-field="ip-ihl"><dt><code>14</code> IHL</dt><dd><code>45</code>の下位4ビットが<code>5</code>。ヘッダー長は<code>5 × 4 = 20</code>バイトです。</dd></div>
+            <div data-learn-field="ip-tos"><dt><code>15</code> ToS</dt><dd><code>00</code>。RFC 791の図ではType of Serviceと表記されます。この教材では値の位置を確認します。</dd></div>
+            <div data-learn-field="ip-total"><dt><code>16〜17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code>バイト。IPv4ヘッダーとその後ろのデータを含み、Ethernet IIの14バイトは含みません。</dd></div>
+            <div data-learn-field="ip-id"><dt><code>18〜19</code> Identification</dt><dd><code>30 03</code> → <code>0x3003</code>。フラグメントの再構成に使う識別値です。</dd></div>
+            <div data-learn-field="ip-flags"><dt><code>20</code> Flags</dt><dd><code>40 00</code>の上位3ビットは<code>010</code>。DFが1、MFが0です。</dd></div>
+            <div data-learn-field="ip-fragment"><dt><code>20〜21</code> Fragment Offset</dt><dd><code>40 00</code>の下位13ビットは<code>0</code>。分割位置のずれはありません。</dd></div>
+            <div data-learn-field="ip-ttl"><dt><code>22</code> TTL</dt><dd><code>80</code> → 10進数で<code>128</code>。転送中に減る寿命の値です。</dd></div>
+            <div data-learn-field="ip-protocol"><dt><code>23</code> Protocol</dt><dd><code>11</code> → 10進数で<code>17</code>。後続はUDPです。</dd></div>
+            <div data-learn-field="ip-checksum"><dt><code>24〜25</code> Header Checksum</dt><dd><code>63 E6</code>。検査対象はIPv4ヘッダーで、UDPデータは含みません。</dd></div>
+            <div data-learn-field="ip-src"><dt><code>26〜29</code> 送信元IP</dt><dd><code>C6 33 64 4D</code>を1バイトずつ10進数へ変換して<code>198.51.100.77</code>。</dd></div>
+            <div data-learn-field="ip-dst"><dt><code>30〜33</code> 宛先IP</dt><dd><code>CB 00 71 52</code> → <code>203.0.113.82</code>。</dd></div>
           </dl>
           <p>この例ではIHLが5なので、UDPは<code>14 + 20 = 34</code>から始まります。IHLが変わるパケットでは、この開始位置も変わります。</p>
           <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc791.html" target="_blank" rel="noopener noreferrer">RFC 791（別タブ）</a>のInternet Header Formatで各フィールドの幅と意味を確認できます。Protocol値17の登録は<a href="https://www.iana.org/assignments/protocol-numbers/" target="_blank" rel="noopener noreferrer">IANA Protocol Numbers（別タブ）</a>を参照してください。</p>
@@ -174,16 +180,16 @@
             <div class="diagram-scroll" role="region" aria-label="UDPヘッダーの32ビット配置図" tabindex="0">
               <div class="diagram-layout">
                 <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0〜7</span><span>8〜15</span><span>16〜23</span><span>24〜31</span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">34〜37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Source Port</strong><code>D6 D8</code></span><span class="diagram-field span-16"><strong>Destination Port</strong><code>00 35</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">38〜41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Length</strong><code>00 1C</code></span><span class="diagram-field span-16"><strong>Checksum</strong><code>FD 29</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">34〜37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="udp-src"><strong>Source Port</strong><code>D6 D8</code></span><span class="diagram-field span-16" data-learn-field="udp-dst"><strong>Destination Port</strong><code>00 35</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">38〜41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="udp-length"><strong>Length</strong><code>00 1C</code></span><span class="diagram-field span-16" data-learn-field="udp-checksum"><strong>Checksum</strong><code>FD 29</code></span></div></div>
               </div>
             </div>
           </figure>
           <dl class="learning-fields">
-            <div><dt><code>34〜35</code> 送信元ポート</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>。</dd></div>
-            <div><dt><code>36〜37</code> 宛先ポート</dt><dd><code>00 35</code> → <code>53</code>。</dd></div>
-            <div><dt><code>38〜39</code> Length</dt><dd><code>00 1C</code> → <code>28</code>バイト。UDPヘッダー8バイトとデータ20バイトを含みます。</dd></div>
-            <div><dt><code>40〜41</code> Checksum</dt><dd><code>FD 29</code>。計算にはUDPだけでなく、IPv4の送信元アドレスと宛先アドレスなどを含む疑似ヘッダーも使います。</dd></div>
+            <div data-learn-field="udp-src"><dt><code>34〜35</code> 送信元ポート</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>。</dd></div>
+            <div data-learn-field="udp-dst"><dt><code>36〜37</code> 宛先ポート</dt><dd><code>00 35</code> → <code>53</code>。</dd></div>
+            <div data-learn-field="udp-length"><dt><code>38〜39</code> Length</dt><dd><code>00 1C</code> → <code>28</code>バイト。UDPヘッダー8バイトとデータ20バイトを含みます。</dd></div>
+            <div data-learn-field="udp-checksum"><dt><code>40〜41</code> Checksum</dt><dd><code>FD 29</code>。計算にはUDPだけでなく、IPv4の送信元アドレスと宛先アドレスなどを含む疑似ヘッダーも使います。</dd></div>
           </dl>
           <p>データはオフセット42からです。ポート番号だけでアプリケーションの内容を断定しないでください。このツールはUDPのポートやチェックサムを採点しません。</p>
           <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768（別タブ）</a>のFormatとFieldsで、4つのUDPフィールドとLengthの範囲、チェックサムの疑似ヘッダーを確認できます。</p>
@@ -193,6 +199,7 @@
 
       <div id="learn-en" lang="en" hidden>
         <p class="learning-lead">Follow the headers from the outside inward using the original frame in the IPv4 lesson. Box widths show field lengths, and the values come from the lesson frame. Labels at the left are decimal byte offsets from the start of the Ethernet frame.</p>
+        <p class="learning-interaction-note">Hover over a diagram field or explanation row to highlight its match. Tap to keep it selected; tap the same item again to clear it. With a keyboard, focus a diagram field and press Enter or Space to select it.</p>
         <nav class="learning-toc" aria-label="Learning topics">
           <a href="#learn-ethernet-en">Ethernet II</a>
           <a href="#learn-ipv4-en">IPv4</a>
@@ -217,14 +224,14 @@
             <div class="diagram-scroll" role="region" aria-label="Ethernet II header diagram" tabindex="0">
               <div class="diagram-layout">
                 <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-byte-axis" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">0–13</span><div class="diagram-cells diagram-cells--bytes"><span class="diagram-field span-6"><strong>Destination MAC</strong><code>02 FE DC BA 98 76</code></span><span class="diagram-field span-6"><strong>Source MAC</strong><code>02 12 34 56 78 9A</code></span><span class="diagram-field span-2"><strong>Type</strong><code>08 00</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">0–13</span><div class="diagram-cells diagram-cells--bytes"><span class="diagram-field span-6" data-learn-field="ether-dst"><strong>Destination MAC</strong><code>02 FE DC BA 98 76</code></span><span class="diagram-field span-6" data-learn-field="ether-src"><strong>Source MAC</strong><code>02 12 34 56 78 9A</code></span><span class="diagram-field span-2" data-learn-field="ether-type"><strong>Type</strong><code>08 00</code></span></div></div>
               </div>
             </div>
           </figure>
           <dl class="learning-fields">
-            <div><dt><code>0–5</code> Destination MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
-            <div><dt><code>6–11</code> Source MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
-            <div><dt><code>12–13</code> EtherType</dt><dd>Read <code>08 00</code> in order as <code>0x0800</code>. IPv4 follows at offset 14.</dd></div>
+            <div data-learn-field="ether-dst"><dt><code>0–5</code> Destination MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
+            <div data-learn-field="ether-src"><dt><code>6–11</code> Source MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
+            <div data-learn-field="ether-type"><dt><code>12–13</code> EtherType</dt><dd>Read <code>08 00</code> in order as <code>0x0800</code>. IPv4 follows at offset 14.</dd></div>
           </dl>
           <p class="learning-reference">Reference: <a href="https://datatracker.ietf.org/doc/html/rfc894" target="_blank" rel="noopener noreferrer">RFC 894 (new tab)</a> specifies the Ethernet Type value <code>0x0800</code> for IPv4 and places the IP header at the start of the data field.</p>
         </article>
@@ -236,22 +243,27 @@
             <div class="diagram-scroll" role="region" aria-label="32-bit IPv4 header diagram" tabindex="0">
               <div class="diagram-layout">
                 <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0–7</span><span>8–15</span><span>16–23</span><span>24–31</span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">14–17</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-4"><strong>Ver</strong><code>4</code></span><span class="diagram-field span-4"><strong>IHL</strong><code>5</code></span><span class="diagram-field span-8"><strong>ToS</strong><code>00</code></span><span class="diagram-field span-16"><strong>Total Length</strong><code>00 30</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">18–21</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Identification</strong><code>30 03</code></span><span class="diagram-field span-3"><strong>Flags</strong><code>010</code></span><span class="diagram-field span-13"><strong>Fragment Offset</strong><code>0</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">22–25</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8"><strong>TTL</strong><code>80</code></span><span class="diagram-field span-8"><strong>Protocol</strong><code>11</code></span><span class="diagram-field span-16"><strong>Header Checksum</strong><code>63 E6</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">26–29</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Source Address</strong><code>C6 33 64 4D</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">30–33</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Destination Address</strong><code>CB 00 71 52</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">14–17</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-4" data-learn-field="ip-version"><strong>Ver</strong><code>4</code></span><span class="diagram-field span-4" data-learn-field="ip-ihl"><strong>IHL</strong><code>5</code></span><span class="diagram-field span-8" data-learn-field="ip-tos"><strong>ToS</strong><code>00</code></span><span class="diagram-field span-16" data-learn-field="ip-total"><strong>Total Length</strong><code>00 30</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">18–21</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="ip-id"><strong>Identification</strong><code>30 03</code></span><span class="diagram-field span-3" data-learn-field="ip-flags"><strong>Flags</strong><code>010</code></span><span class="diagram-field span-13" data-learn-field="ip-fragment"><strong>Fragment Offset</strong><code>0</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">22–25</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8" data-learn-field="ip-ttl"><strong>TTL</strong><code>80</code></span><span class="diagram-field span-8" data-learn-field="ip-protocol"><strong>Protocol</strong><code>11</code></span><span class="diagram-field span-16" data-learn-field="ip-checksum"><strong>Header Checksum</strong><code>63 E6</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">26–29</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32" data-learn-field="ip-src"><strong>Source Address</strong><code>C6 33 64 4D</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">30–33</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32" data-learn-field="ip-dst"><strong>Destination Address</strong><code>CB 00 71 52</code></span></div></div>
               </div>
             </div>
           </figure>
           <dl class="learning-fields">
-            <div><dt><code>14</code> Version / IHL</dt><dd>In <code>45</code>, the upper four bits give Version <code>4</code> and the lower four bits give IHL <code>5</code>. Header length is <code>5 × 4 = 20</code> bytes.</dd></div>
-            <div><dt><code>16–17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code> bytes. This includes the IPv4 header and its data, but not the 14-byte Ethernet II header.</dd></div>
-            <div><dt><code>22</code> TTL</dt><dd><code>80</code> → <code>128</code> in decimal. This lifetime value is reduced during forwarding.</dd></div>
-            <div><dt><code>23</code> Protocol</dt><dd><code>11</code> → <code>17</code> in decimal, indicating UDP.</dd></div>
-            <div><dt><code>24–25</code> Header Checksum</dt><dd><code>63 E6</code>. It covers the IPv4 header, not the UDP data.</dd></div>
-            <div><dt><code>26–29</code> Source IP</dt><dd>Convert each byte of <code>C6 33 64 4D</code> to decimal: <code>198.51.100.77</code>.</dd></div>
-            <div><dt><code>30–33</code> Destination IP</dt><dd><code>CB 00 71 52</code> → <code>203.0.113.82</code>.</dd></div>
+            <div data-learn-field="ip-version"><dt><code>14</code> Version</dt><dd>The upper four bits of <code>45</code> give <code>4</code>, indicating IPv4.</dd></div>
+            <div data-learn-field="ip-ihl"><dt><code>14</code> IHL</dt><dd>The lower four bits of <code>45</code> give <code>5</code>. Header length is <code>5 × 4 = 20</code> bytes.</dd></div>
+            <div data-learn-field="ip-tos"><dt><code>15</code> ToS</dt><dd><code>00</code>. RFC 791 labels this field Type of Service. This lesson uses it to identify the field's position.</dd></div>
+            <div data-learn-field="ip-total"><dt><code>16–17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code> bytes. This includes the IPv4 header and its data, but not the 14-byte Ethernet II header.</dd></div>
+            <div data-learn-field="ip-id"><dt><code>18–19</code> Identification</dt><dd><code>30 03</code> → <code>0x3003</code>. This identifying value aids fragment reassembly.</dd></div>
+            <div data-learn-field="ip-flags"><dt><code>20</code> Flags</dt><dd>The upper three bits of <code>40 00</code> are <code>010</code>: DF is 1 and MF is 0.</dd></div>
+            <div data-learn-field="ip-fragment"><dt><code>20–21</code> Fragment Offset</dt><dd>The lower 13 bits of <code>40 00</code> are <code>0</code>, so there is no fragment offset.</dd></div>
+            <div data-learn-field="ip-ttl"><dt><code>22</code> TTL</dt><dd><code>80</code> → <code>128</code> in decimal. This lifetime value is reduced during forwarding.</dd></div>
+            <div data-learn-field="ip-protocol"><dt><code>23</code> Protocol</dt><dd><code>11</code> → <code>17</code> in decimal, indicating UDP.</dd></div>
+            <div data-learn-field="ip-checksum"><dt><code>24–25</code> Header Checksum</dt><dd><code>63 E6</code>. It covers the IPv4 header, not the UDP data.</dd></div>
+            <div data-learn-field="ip-src"><dt><code>26–29</code> Source IP</dt><dd>Convert each byte of <code>C6 33 64 4D</code> to decimal: <code>198.51.100.77</code>.</dd></div>
+            <div data-learn-field="ip-dst"><dt><code>30–33</code> Destination IP</dt><dd><code>CB 00 71 52</code> → <code>203.0.113.82</code>.</dd></div>
           </dl>
           <p>With IHL 5, UDP starts at <code>14 + 20 = 34</code>. A packet with a different IHL would move this boundary.</p>
           <p class="learning-reference">Reference: the Internet Header Format in <a href="https://www.rfc-editor.org/rfc/rfc791.html" target="_blank" rel="noopener noreferrer">RFC 791 (new tab)</a> defines these field widths and meanings. See the <a href="https://www.iana.org/assignments/protocol-numbers/" target="_blank" rel="noopener noreferrer">IANA Protocol Numbers registry (new tab)</a> for the assignment of 17 to UDP.</p>
@@ -264,16 +276,16 @@
             <div class="diagram-scroll" role="region" aria-label="32-bit UDP header diagram" tabindex="0">
               <div class="diagram-layout">
                 <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0–7</span><span>8–15</span><span>16–23</span><span>24–31</span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">34–37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Source Port</strong><code>D6 D8</code></span><span class="diagram-field span-16"><strong>Destination Port</strong><code>00 35</code></span></div></div>
-                <div class="diagram-row"><span class="diagram-offset">38–41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Length</strong><code>00 1C</code></span><span class="diagram-field span-16"><strong>Checksum</strong><code>FD 29</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">34–37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="udp-src"><strong>Source Port</strong><code>D6 D8</code></span><span class="diagram-field span-16" data-learn-field="udp-dst"><strong>Destination Port</strong><code>00 35</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">38–41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="udp-length"><strong>Length</strong><code>00 1C</code></span><span class="diagram-field span-16" data-learn-field="udp-checksum"><strong>Checksum</strong><code>FD 29</code></span></div></div>
               </div>
             </div>
           </figure>
           <dl class="learning-fields">
-            <div><dt><code>34–35</code> Source Port</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>.</dd></div>
-            <div><dt><code>36–37</code> Destination Port</dt><dd><code>00 35</code> → <code>53</code>.</dd></div>
-            <div><dt><code>38–39</code> Length</dt><dd><code>00 1C</code> → <code>28</code> bytes, including the eight-byte UDP header and 20 data bytes.</dd></div>
-            <div><dt><code>40–41</code> Checksum</dt><dd><code>FD 29</code>. Its calculation also uses a pseudo-header containing the IPv4 source and destination addresses, among other values.</dd></div>
+            <div data-learn-field="udp-src"><dt><code>34–35</code> Source Port</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>.</dd></div>
+            <div data-learn-field="udp-dst"><dt><code>36–37</code> Destination Port</dt><dd><code>00 35</code> → <code>53</code>.</dd></div>
+            <div data-learn-field="udp-length"><dt><code>38–39</code> Length</dt><dd><code>00 1C</code> → <code>28</code> bytes, including the eight-byte UDP header and 20 data bytes.</dd></div>
+            <div data-learn-field="udp-checksum"><dt><code>40–41</code> Checksum</dt><dd><code>FD 29</code>. Its calculation also uses a pseudo-header containing the IPv4 source and destination addresses, among other values.</dd></div>
           </dl>
           <p>Data begins at offset 42. A port number alone does not establish the application content. This tool does not grade UDP ports or checksums.</p>
           <p class="learning-reference">Reference: the Format and Fields sections of <a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768 (new tab)</a> define the four UDP fields, the Length coverage, and the checksum pseudo-header.</p>

@@ -139,6 +139,38 @@
     start: '', end: '', value: '', hintLevel: 0,
     outcome: '', feedbackKey: '', noticeKey: ''
   };
+  const learnPanel = element('learn-panel');
+  const learnItems = Array.from(learnPanel.querySelectorAll('[data-learn-field]'));
+  const diagramFields = Array.from(learnPanel.querySelectorAll('.diagram-field'));
+  const learnHighlight = { hovered: null, focused: null, selected: null };
+
+  for (const field of diagramFields) {
+    field.setAttribute('role', 'button');
+    field.setAttribute('aria-pressed', 'false');
+    field.tabIndex = 0;
+  }
+
+  function learningItem(target) {
+    if (!(target instanceof Element)) return null;
+    const item = target.closest('[data-learn-field]');
+    return item && learnPanel.contains(item) ? item : null;
+  }
+
+  function renderLearningHighlight() {
+    const active = learnHighlight.hovered || learnHighlight.focused || learnHighlight.selected;
+    for (const item of learnItems) {
+      item.classList.toggle('is-highlighted', item.dataset.learnField === active);
+      item.classList.toggle('is-selected', item.dataset.learnField === active && active === learnHighlight.selected);
+    }
+    for (const field of diagramFields) {
+      field.setAttribute('aria-pressed', String(field.dataset.learnField === learnHighlight.selected));
+    }
+  }
+
+  function toggleLearningSelection(key) {
+    learnHighlight.selected = learnHighlight.selected === key ? null : key;
+    renderLearningHighlight();
+  }
 
   function words() { return copy[state.locale]; }
   function lesson() { return data.lessons[state.lessonIndex]; }
@@ -420,8 +452,50 @@
     event.preventDefault();
     switchView(view, true);
   });
-  element('learn-panel').addEventListener('click', event => {
-    if (event.target.closest('[data-open-practice]')) switchView('practice', true);
+  learnPanel.addEventListener('pointerover', event => {
+    if (event.pointerType === 'touch') return;
+    const item = learningItem(event.target);
+    if (!item || item.contains(event.relatedTarget)) return;
+    learnHighlight.hovered = item.dataset.learnField;
+    renderLearningHighlight();
+  });
+  learnPanel.addEventListener('pointerout', event => {
+    if (event.pointerType === 'touch') return;
+    const item = learningItem(event.target);
+    if (!item || item.contains(event.relatedTarget)) return;
+    if (learnHighlight.hovered === item.dataset.learnField) {
+      learnHighlight.hovered = null;
+      renderLearningHighlight();
+    }
+  });
+  learnPanel.addEventListener('focusin', event => {
+    const item = learningItem(event.target);
+    if (!item || !item.classList.contains('diagram-field') || !item.matches(':focus-visible')) return;
+    learnHighlight.focused = item.dataset.learnField;
+    learnHighlight.hovered = null;
+    renderLearningHighlight();
+  });
+  learnPanel.addEventListener('focusout', event => {
+    const item = learningItem(event.target);
+    if (item && learnHighlight.focused === item.dataset.learnField) {
+      learnHighlight.focused = null;
+      renderLearningHighlight();
+    }
+  });
+  learnPanel.addEventListener('keydown', event => {
+    const item = learningItem(event.target);
+    if (!item || !item.classList.contains('diagram-field')) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    toggleLearningSelection(item.dataset.learnField);
+  });
+  learnPanel.addEventListener('click', event => {
+    const item = learningItem(event.target);
+    if (item) {
+      toggleLearningSelection(item.dataset.learnField);
+    } else if (event.target.closest('[data-open-practice]')) {
+      switchView('practice', true);
+    }
   });
   element('skip-intro').addEventListener('click', () => switchLesson(1));
   element('lesson-list').addEventListener('click', event => {
