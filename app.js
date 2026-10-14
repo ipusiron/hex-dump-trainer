@@ -45,7 +45,7 @@
       revealed: '解答を表示しました。この問題は「解答表示」として記録します。',
       switched: '教材を切り替えました。問題は未回答状態から始まります。',
       finished: 'この教材を完了しました。ほかの教材も選べます。',
-      hintHeader: header => `対象ヘッダー：${header}`, 
+      hintHeader: header => `対象ヘッダー：${header}`,
       hintOffset: (header, relative) => `${header}の先頭から${relative}バイト目に対象が始まります。`,
       frame: 'フレーム',
       ethernet: 'Ethernet II',
