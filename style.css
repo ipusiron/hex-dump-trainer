@@ -507,6 +507,129 @@ input {
   font-weight: 700;
 }
 
+.packet-figure {
+  margin: 1.1rem 0;
+}
+
+.packet-figure figcaption {
+  margin-bottom: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.diagram-hint {
+  display: block;
+  color: #40556d;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.diagram-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #c5d5e7;
+  border-radius: 0.55rem;
+  background: #f8fafc;
+}
+
+.diagram-scroll:focus-visible {
+  outline: 3px solid #e38120;
+  outline-offset: 3px;
+}
+
+.diagram-layout {
+  min-width: 44rem;
+  padding: 0.45rem;
+}
+
+.diagram-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.diagram-offset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #40556d;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.diagram-bit-axis,
+.diagram-byte-axis {
+  display: grid;
+  color: #40556d;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.76rem;
+  text-align: center;
+}
+
+.diagram-bit-axis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.diagram-byte-axis {
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+}
+
+.diagram-cells {
+  display: grid;
+  gap: 1px;
+  padding: 1px;
+  background: #aabed6;
+}
+
+.diagram-cells--bits {
+  grid-template-columns: repeat(32, minmax(0, 1fr));
+}
+
+.diagram-cells--bytes {
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+}
+
+.diagram-field {
+  display: flex;
+  min-width: 0;
+  min-height: 3.55rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.1rem;
+  background: #eef4fb;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.diagram-field strong {
+  font-size: 0.78rem;
+}
+
+.diagram-field code {
+  color: #17467c;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; }
+.span-8 { grid-column: span 8; }
+.span-13 { grid-column: span 13; }
+.span-16 { grid-column: span 16; }
+.span-32 { grid-column: span 32; }
+
+@media (max-width: 47.99rem) {
+  .diagram-field.span-32 {
+    align-items: flex-start;
+    padding-left: 1rem;
+  }
+}
+
 .learning-fields {
   margin: 1rem 0;
 }
@@ -598,5 +721,11 @@ input {
 
   .ascii-cell {
     grid-column: auto;
+  }
+}
+
+@media (min-width: 60rem) {
+  .diagram-hint {
+    display: none;
   }
 }

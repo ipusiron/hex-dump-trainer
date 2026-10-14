@@ -102,7 +102,7 @@
       <h2 id="learn-title">パケットの読み方</h2>
 
       <div id="learn-ja" lang="ja">
-        <p class="learning-lead">IPv4教材の自作フレームを例に、外側のヘッダーから順に読みます。位置はフレーム先頭を0とする絶対オフセットです。</p>
+        <p class="learning-lead">IPv4教材の自作フレームを例に、外側のヘッダーから順に読みます。各図の箱の幅はフィールドの長さ、箱内の値は教材の実際の値です。左端はフレーム先頭を0とする10進数のバイト位置です。</p>
         <nav class="learning-toc" aria-label="学習項目">
           <a href="#learn-ethernet-ja">Ethernet II</a>
           <a href="#learn-ipv4-ja">IPv4</a>
@@ -122,6 +122,15 @@
         <article id="learn-ethernet-ja" class="panel learning-card" aria-labelledby="learn-ethernet-title-ja">
           <h3 id="learn-ethernet-title-ja">Ethernet II：次のヘッダーを見つける</h3>
           <p>最初の6バイトが宛先MACアドレス、次の6バイトが送信元MACアドレスです。続く2バイトのEtherTypeで、後ろに入るデータの種類を確認します。</p>
+          <figure class="packet-figure">
+            <figcaption>Ethernet IIヘッダーの14バイト。上の目盛りはフレーム先頭からのバイト位置です。<span class="diagram-hint">図は横にスクロールできます。</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="Ethernet IIヘッダーの配置図" tabindex="0">
+              <div class="diagram-layout">
+                <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-byte-axis" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">0〜13</span><div class="diagram-cells diagram-cells--bytes"><span class="diagram-field span-6"><strong>宛先MAC</strong><code>02 FE DC BA 98 76</code></span><span class="diagram-field span-6"><strong>送信元MAC</strong><code>02 12 34 56 78 9A</code></span><span class="diagram-field span-2"><strong>Type</strong><code>08 00</code></span></div></div>
+              </div>
+            </div>
+          </figure>
           <dl class="learning-fields">
             <div><dt><code>0〜5</code> 宛先MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
             <div><dt><code>6〜11</code> 送信元MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
@@ -132,6 +141,19 @@
         <article id="learn-ipv4-ja" class="panel learning-card" aria-labelledby="learn-ipv4-title-ja">
           <h3 id="learn-ipv4-title-ja">IPv4：長さと上位プロトコルを読む</h3>
           <p>IPv4ヘッダーの先頭は絶対オフセット14です。以下の位置から14を引くと、IPv4ヘッダー内の相対オフセットになります。</p>
+          <figure class="packet-figure">
+            <figcaption>IPv4ヘッダー。1行が32ビット（4バイト）で、箱の幅はビット数に比例します。IHLが5のため、この例にOptionsはありません。<span class="diagram-hint">図は横にスクロールできます。</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="IPv4ヘッダーの32ビット配置図" tabindex="0">
+              <div class="diagram-layout">
+                <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0〜7</span><span>8〜15</span><span>16〜23</span><span>24〜31</span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">14〜17</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-4"><strong>Ver</strong><code>4</code></span><span class="diagram-field span-4"><strong>IHL</strong><code>5</code></span><span class="diagram-field span-8"><strong>ToS</strong><code>00</code></span><span class="diagram-field span-16"><strong>Total Length</strong><code>00 30</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">18〜21</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Identification</strong><code>30 03</code></span><span class="diagram-field span-3"><strong>Flags</strong><code>010</code></span><span class="diagram-field span-13"><strong>Fragment Offset</strong><code>0</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">22〜25</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8"><strong>TTL</strong><code>80</code></span><span class="diagram-field span-8"><strong>Protocol</strong><code>11</code></span><span class="diagram-field span-16"><strong>Header Checksum</strong><code>63 E6</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">26〜29</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Source Address</strong><code>C6 33 64 4D</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">30〜33</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Destination Address</strong><code>CB 00 71 52</code></span></div></div>
+              </div>
+            </div>
+          </figure>
           <dl class="learning-fields">
             <div><dt><code>14</code> Version / IHL</dt><dd><code>45</code>の上位4ビットがVersion <code>4</code>、下位4ビットがIHL <code>5</code>。ヘッダー長は<code>5 × 4 = 20</code>バイトです。</dd></div>
             <div><dt><code>16〜17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code>バイト。IPv4ヘッダーとその後ろのデータを含み、Ethernet IIの14バイトは含みません。</dd></div>
@@ -147,6 +169,16 @@
         <article id="learn-udp-ja" class="panel learning-card" aria-labelledby="learn-udp-title-ja">
           <h3 id="learn-udp-title-ja">UDP：ポートとデータ長を読む</h3>
           <p>IPv4のProtocolが17なので、IPv4ヘッダーの後ろをUDPとして読みます。この例のUDPヘッダーは絶対オフセット34から8バイトです。</p>
+          <figure class="packet-figure">
+            <figcaption>UDPヘッダー。1行が32ビット（4バイト）です。Lengthはヘッダーとデータの合計です。<span class="diagram-hint">図は横にスクロールできます。</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="UDPヘッダーの32ビット配置図" tabindex="0">
+              <div class="diagram-layout">
+                <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0〜7</span><span>8〜15</span><span>16〜23</span><span>24〜31</span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">34〜37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Source Port</strong><code>D6 D8</code></span><span class="diagram-field span-16"><strong>Destination Port</strong><code>00 35</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">38〜41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Length</strong><code>00 1C</code></span><span class="diagram-field span-16"><strong>Checksum</strong><code>FD 29</code></span></div></div>
+              </div>
+            </div>
+          </figure>
           <dl class="learning-fields">
             <div><dt><code>34〜35</code> 送信元ポート</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>。</dd></div>
             <div><dt><code>36〜37</code> 宛先ポート</dt><dd><code>00 35</code> → <code>53</code>。</dd></div>
@@ -160,7 +192,7 @@
       </div>
 
       <div id="learn-en" lang="en" hidden>
-        <p class="learning-lead">Follow the headers from the outside inward using the original frame in the IPv4 lesson. All positions below are zero-based offsets from the start of the Ethernet frame.</p>
+        <p class="learning-lead">Follow the headers from the outside inward using the original frame in the IPv4 lesson. Box widths show field lengths, and the values come from the lesson frame. Labels at the left are decimal byte offsets from the start of the Ethernet frame.</p>
         <nav class="learning-toc" aria-label="Learning topics">
           <a href="#learn-ethernet-en">Ethernet II</a>
           <a href="#learn-ipv4-en">IPv4</a>
@@ -180,6 +212,15 @@
         <article id="learn-ethernet-en" class="panel learning-card" aria-labelledby="learn-ethernet-title-en">
           <h3 id="learn-ethernet-title-en">Ethernet II: find the next header</h3>
           <p>The first six bytes hold the destination MAC address, followed by six bytes for the source MAC address. The two-byte EtherType identifies the type of data that follows.</p>
+          <figure class="packet-figure">
+            <figcaption>The 14-byte Ethernet II header. The top scale shows byte positions from the start of the frame.<span class="diagram-hint">Scroll horizontally to see the full diagram.</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="Ethernet II header diagram" tabindex="0">
+              <div class="diagram-layout">
+                <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-byte-axis" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">0–13</span><div class="diagram-cells diagram-cells--bytes"><span class="diagram-field span-6"><strong>Destination MAC</strong><code>02 FE DC BA 98 76</code></span><span class="diagram-field span-6"><strong>Source MAC</strong><code>02 12 34 56 78 9A</code></span><span class="diagram-field span-2"><strong>Type</strong><code>08 00</code></span></div></div>
+              </div>
+            </div>
+          </figure>
           <dl class="learning-fields">
             <div><dt><code>0–5</code> Destination MAC</dt><dd><code>02 FE DC BA 98 76</code> → <code>02:FE:DC:BA:98:76</code></dd></div>
             <div><dt><code>6–11</code> Source MAC</dt><dd><code>02 12 34 56 78 9A</code> → <code>02:12:34:56:78:9A</code></dd></div>
@@ -190,6 +231,19 @@
         <article id="learn-ipv4-en" class="panel learning-card" aria-labelledby="learn-ipv4-title-en">
           <h3 id="learn-ipv4-title-en">IPv4: read length and next protocol</h3>
           <p>The IPv4 header starts at absolute offset 14. Subtract 14 from a position below to get its offset relative to the IPv4 header.</p>
+          <figure class="packet-figure">
+            <figcaption>The IPv4 header. Each row is 32 bits (4 bytes); box widths follow bit lengths. IHL 5 means this example has no Options.<span class="diagram-hint">Scroll horizontally to see the full diagram.</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="32-bit IPv4 header diagram" tabindex="0">
+              <div class="diagram-layout">
+                <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0–7</span><span>8–15</span><span>16–23</span><span>24–31</span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">14–17</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-4"><strong>Ver</strong><code>4</code></span><span class="diagram-field span-4"><strong>IHL</strong><code>5</code></span><span class="diagram-field span-8"><strong>ToS</strong><code>00</code></span><span class="diagram-field span-16"><strong>Total Length</strong><code>00 30</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">18–21</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Identification</strong><code>30 03</code></span><span class="diagram-field span-3"><strong>Flags</strong><code>010</code></span><span class="diagram-field span-13"><strong>Fragment Offset</strong><code>0</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">22–25</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8"><strong>TTL</strong><code>80</code></span><span class="diagram-field span-8"><strong>Protocol</strong><code>11</code></span><span class="diagram-field span-16"><strong>Header Checksum</strong><code>63 E6</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">26–29</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Source Address</strong><code>C6 33 64 4D</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">30–33</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-32"><strong>Destination Address</strong><code>CB 00 71 52</code></span></div></div>
+              </div>
+            </div>
+          </figure>
           <dl class="learning-fields">
             <div><dt><code>14</code> Version / IHL</dt><dd>In <code>45</code>, the upper four bits give Version <code>4</code> and the lower four bits give IHL <code>5</code>. Header length is <code>5 × 4 = 20</code> bytes.</dd></div>
             <div><dt><code>16–17</code> Total Length</dt><dd><code>00 30</code> → <code>0x0030</code> → <code>48</code> bytes. This includes the IPv4 header and its data, but not the 14-byte Ethernet II header.</dd></div>
@@ -205,6 +259,16 @@
         <article id="learn-udp-en" class="panel learning-card" aria-labelledby="learn-udp-title-en">
           <h3 id="learn-udp-title-en">UDP: read ports and length</h3>
           <p>IPv4 Protocol 17 identifies the next header as UDP. In this example, its eight-byte header begins at absolute offset 34.</p>
+          <figure class="packet-figure">
+            <figcaption>The UDP header. Each row is 32 bits (4 bytes). Length includes both the header and its data.<span class="diagram-hint">Scroll horizontally to see the full diagram.</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="32-bit UDP header diagram" tabindex="0">
+              <div class="diagram-layout">
+                <div class="diagram-row diagram-axis"><span class="diagram-offset">byte</span><div class="diagram-bit-axis" aria-hidden="true"><span>bit 0–7</span><span>8–15</span><span>16–23</span><span>24–31</span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">34–37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Source Port</strong><code>D6 D8</code></span><span class="diagram-field span-16"><strong>Destination Port</strong><code>00 35</code></span></div></div>
+                <div class="diagram-row"><span class="diagram-offset">38–41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16"><strong>Length</strong><code>00 1C</code></span><span class="diagram-field span-16"><strong>Checksum</strong><code>FD 29</code></span></div></div>
+              </div>
+            </div>
+          </figure>
           <dl class="learning-fields">
             <div><dt><code>34–35</code> Source Port</dt><dd><code>D6 D8</code> → <code>0xD6D8</code> → <code>55000</code>.</dd></div>
             <div><dt><code>36–37</code> Destination Port</dt><dd><code>00 35</code> → <code>53</code>.</dd></div>
