@@ -8,6 +8,11 @@
     ja: {
       lead: '16進ダンプを、バイトの位置から読めるように。',
       skipLink: '問題へ移動',
+      skipLearning: '学習内容へ移動',
+      tabsLabel: '表示を選択',
+      practiceTab: '演習',
+      learnTab: '学習',
+      learnTitle: 'パケットの読み方',
       guideTitle: '最初に：16進ダンプの読み方',
       guideOne: '16進数の2桁（00〜FF）が1バイトです。左端の0000、0008、0010は各行の先頭オフセットで、0010は10進数の16です。',
       guideTwo: '各行は8バイトです。ASCII欄では印字できないバイトを「.」で示します。ASCII表示はバイトの意味を保証しません。',
@@ -65,6 +70,11 @@
     en: {
       lead: 'Learn to read a hex dump by finding each byte.',
       skipLink: 'Skip to exercise',
+      skipLearning: 'Skip to learning content',
+      tabsLabel: 'Choose a view',
+      practiceTab: 'Exercises',
+      learnTab: 'Learn',
+      learnTitle: 'How to read the packets',
       guideTitle: 'Start here: reading a hex dump',
       guideOne: 'Two hexadecimal digits (00–FF) represent one byte. The left labels 0000, 0008, and 0010 are row offsets; 0010 in hex is 16 in decimal.',
       guideTwo: 'Each row contains eight bytes. The ASCII column shows non-printable bytes as “.”. ASCII display does not guarantee a byte’s meaning.',
@@ -125,7 +135,7 @@
     solved: new Set(), revealed: new Set()
   }]));
   const state = {
-    locale: 'ja', lessonIndex: 0, questionIndex: 0,
+    locale: 'ja', view: 'practice', lessonIndex: 0, questionIndex: 0,
     start: '', end: '', value: '', hintLevel: 0,
     outcome: '', feedbackKey: '', noticeKey: ''
   };
@@ -136,6 +146,33 @@
   function frame() { return data.frames[lesson().frameId]; }
   function answer() { return core.answerFor(question(), frame()); }
   function setText(id, value) { element(id).textContent = value; }
+
+  function renderTabs() {
+    const t = words();
+    const practice = state.view === 'practice';
+    document.querySelector('.main-tabs').setAttribute('aria-label', t.tabsLabel);
+    setText('practice-tab', t.practiceTab);
+    setText('learn-tab', t.learnTab);
+    setText('learn-title', t.learnTitle);
+    for (const [id, selected] of [['practice-tab', practice], ['learn-tab', !practice]]) {
+      const tab = element(id);
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    }
+    element('practice-panel').hidden = !practice;
+    element('learn-panel').hidden = practice;
+    element('learn-ja').hidden = state.locale !== 'ja';
+    element('learn-en').hidden = state.locale !== 'en';
+    element('skip-link').href = practice ? '#question-title' : '#learn-panel';
+    setText('skip-link', practice ? t.skipLink : t.skipLearning);
+  }
+
+  function switchView(view, focusTab) {
+    if (view !== 'practice' && view !== 'learn') return;
+    state.view = view;
+    renderTabs();
+    if (focusTab) element(view === 'practice' ? 'practice-tab' : 'learn-tab').focus();
+  }
 
   function resetQuestion() {
     state.start = '';
@@ -165,7 +202,6 @@
     languageButton.lang = state.locale === 'ja' ? 'en' : 'ja';
     languageButton.setAttribute('aria-label', state.locale === 'ja' ? 'Switch to English' : '日本語に切り替える');
     setText('lead', t.lead);
-    setText('skip-link', t.skipLink);
     setText('guide-title', t.guideTitle);
     setText('guide-one', t.guideOne);
     setText('guide-two', t.guideTwo);
@@ -329,6 +365,7 @@
   function render() {
     const t = words();
     renderStatic();
+    renderTabs();
     renderLessons();
     const item = lesson();
     const current = question();
@@ -370,6 +407,21 @@
   element('language-button').addEventListener('click', () => {
     state.locale = state.locale === 'ja' ? 'en' : 'ja';
     render();
+  });
+  element('practice-tab').addEventListener('click', () => switchView('practice', false));
+  element('learn-tab').addEventListener('click', () => switchView('learn', false));
+  document.querySelector('.main-tabs').addEventListener('keydown', event => {
+    let view;
+    if (event.key === 'Home') view = 'practice';
+    else if (event.key === 'End') view = 'learn';
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      view = state.view === 'practice' ? 'learn' : 'practice';
+    } else return;
+    event.preventDefault();
+    switchView(view, true);
+  });
+  element('learn-panel').addEventListener('click', event => {
+    if (event.target.closest('[data-open-practice]')) switchView('practice', true);
   });
   element('skip-intro').addEventListener('click', () => switchLesson(1));
   element('lesson-list').addEventListener('click', event => {
