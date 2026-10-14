@@ -95,5 +95,39 @@ test('each diagram field has exactly one matching explanation row in both langua
     assert.equal(diagramKeys.length, 19, `${locale} field count`);
     assert.equal(new Set(diagramKeys).size, 19, `${locale} unique diagram fields`);
     assert.deepEqual(rowKeys, diagramKeys, `${locale} diagram-to-explanation order`);
+    assert.deepEqual(new Set(diagramKeys), new Set(Object.keys(data.learningFields)), `${locale} range metadata`);
+    const dumpHeaders = [...section.matchAll(/<section class="learning-dump-panel" data-learn-header="([^"]+)"><\/section>/g)]
+      .map(match => match[1]);
+    assert.deepEqual(dumpHeaders, ['ethernet', 'ipv4', 'udp'], `${locale} header dumps`);
+  }
+});
+
+test('learning field ranges cover the sample headers and align with eight-byte dump rows', () => {
+  const expected = {
+    'ether-dst': ['ethernet', 0, 5], 'ether-src': ['ethernet', 6, 11], 'ether-type': ['ethernet', 12, 13],
+    'ip-version': ['ipv4', 14, 14], 'ip-ihl': ['ipv4', 14, 14], 'ip-tos': ['ipv4', 15, 15],
+    'ip-total': ['ipv4', 16, 17], 'ip-id': ['ipv4', 18, 19], 'ip-flags': ['ipv4', 20, 21],
+    'ip-fragment': ['ipv4', 20, 21], 'ip-ttl': ['ipv4', 22, 22], 'ip-protocol': ['ipv4', 23, 23],
+    'ip-checksum': ['ipv4', 24, 25], 'ip-src': ['ipv4', 26, 29], 'ip-dst': ['ipv4', 30, 33],
+    'udp-src': ['udp', 34, 35], 'udp-dst': ['udp', 36, 37], 'udp-length': ['udp', 38, 39],
+    'udp-checksum': ['udp', 40, 41]
+  };
+  assert.deepEqual(Object.fromEntries(Object.entries(data.learningFields).map(([key, field]) => [
+    key, [field.header, field.start, field.end]
+  ])), expected);
+
+  const expectedRows = { ethernet: [0, 8], ipv4: [8, 16, 24, 32], udp: [32, 40] };
+  const rows = core.dumpRows(bytes, 8);
+  for (const [header, bounds] of Object.entries(data.learningHeaders)) {
+    const fields = Object.values(data.learningFields).filter(field => field.header === header);
+    const covered = new Set(fields.flatMap(field => Array.from(
+      { length: field.end - field.start + 1 }, (_, index) => field.start + index
+    )));
+    assert.deepEqual([...covered].sort((a, b) => a - b), Array.from(
+      { length: bounds.end - bounds.start + 1 }, (_, index) => bounds.start + index
+    ));
+    assert.deepEqual(rows.filter(row => row.bytes.some(byte =>
+      byte.offset >= bounds.start && byte.offset <= bounds.end
+    )).map(row => row.offset), expectedRows[header]);
   }
 });

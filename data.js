@@ -92,5 +92,35 @@
     }
   ]);
 
-  return Object.freeze({ version: '1.0.0', frames, lessons });
+  const learningHeaders = Object.freeze({
+    ethernet: Object.freeze({ start: 0, end: 13 }),
+    ipv4: Object.freeze({ start: 14, end: 33 }),
+    udp: Object.freeze({ start: 34, end: 41 })
+  });
+  function learningField(header, start, end) {
+    return Object.freeze({ header, start, end });
+  }
+  const learningFields = Object.freeze({
+    'ether-dst': learningField('ethernet', 0, 5),
+    'ether-src': learningField('ethernet', 6, 11),
+    'ether-type': learningField('ethernet', 12, 13),
+    'ip-version': learningField('ipv4', 14, 14),
+    'ip-ihl': learningField('ipv4', 14, 14),
+    'ip-tos': learningField('ipv4', 15, 15),
+    'ip-total': learningField('ipv4', 16, 17),
+    'ip-id': learningField('ipv4', 18, 19),
+    'ip-flags': learningField('ipv4', 20, 21),
+    'ip-fragment': learningField('ipv4', 20, 21),
+    'ip-ttl': learningField('ipv4', 22, 22),
+    'ip-protocol': learningField('ipv4', 23, 23),
+    'ip-checksum': learningField('ipv4', 24, 25),
+    'ip-src': learningField('ipv4', 26, 29),
+    'ip-dst': learningField('ipv4', 30, 33),
+    'udp-src': learningField('udp', 34, 35),
+    'udp-dst': learningField('udp', 36, 37),
+    'udp-length': learningField('udp', 38, 39),
+    'udp-checksum': learningField('udp', 40, 41)
+  });
+
+  return Object.freeze({ version: '1.0.0', frames, lessons, learningHeaders, learningFields });
 });

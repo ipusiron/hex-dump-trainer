@@ -13,7 +13,7 @@
 Hex Dump Trainer is an interactive learning tool for finding byte positions in a hex dump and reading Ethernet II and IPv4 headers.
 If you are new to hex dumps, you can start with a short introduction.
 No book is required.
-The Learn tab uses packet diagrams with values from a built-in frame, offset explanations, and links to the relevant RFCs to explain Ethernet II, IPv4, and UDP. Matching diagram fields and explanation rows highlight together.
+The Learn tab uses packet diagrams, hex bytes from a built-in frame, offset explanations, and links to the relevant RFCs to explain Ethernet II, IPv4, and UDP. Matching diagram fields, explanation rows, and original bytes highlight together.
 
 ## 🌐 Live app
 
@@ -25,13 +25,14 @@ The exercises run in a browser and use original frames; no book is required.
 
 ![The introduction question, hex dump, and lesson list](assets/screenshot-desktop.png)
 
-![The Learn tab highlighting a matching IPv4 field and explanation row](assets/screenshot-learning.png)
+![The Learn tab showing the linked IPv4 diagram, original hex byte, explanation row, and Version's upper four bits](assets/screenshot-learning.png)
 
 ## ✨ What you will learn
 
 - How zero-based offsets correspond to byte positions
 - How field order and widths appear in packet diagrams (32-bit rows for IPv4 and UDP)
-- How to match diagram fields to explanation rows by hover, tap, or keyboard
+- How to match diagram fields, explanation rows, and original hex bytes by hover, tap, or keyboard
+- How frame-absolute and header-relative offsets differ, and how Version and IHL split one byte into two four-bit values
 - How to locate Ethernet II destination and source MAC addresses and EtherType
 - How to read IPv4 Version, IHL, Total Length, TTL, Protocol, and source and destination addresses
 - How to calculate the IPv4 header length from IHL
@@ -39,7 +40,7 @@ The exercises run in a browser and use original frames; no book is required.
 
 ## 📖 How to use
 
-1. Use the Learn tab to inspect header diagrams and example values, then review offsets and RFC links. Hover over a diagram field or explanation row to highlight its match; tap or press Enter/Space on a diagram field to select it. On narrow screens, scroll each diagram horizontally. Switching back to Exercises keeps the answer you were entering.
+1. Use the Learn tab to compare each header diagram with the lesson dump directly below it. Hover over a diagram field or explanation row to highlight its original bytes; tap or press Enter/Space on a diagram field to select it. The selected field shows its absolute and header-relative offsets and hex bytes. On narrow screens, scroll the diagram and dump separately. Switching back to Exercises keeps the answer you were entering.
 2. Complete the two introductory questions or skip to Ethernet II. You can switch lessons at any time.
 3. For range questions, select the start and end bytes. Decimal offset inputs provide an alternative for small screens and keyboards.
 4. For value and calculation questions, enter the notation requested in the question.

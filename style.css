@@ -640,6 +640,151 @@ input {
   font-weight: 700;
 }
 
+.learning-dump-panel {
+  margin: 1rem 0;
+  padding: 0.8rem;
+  border: 1px solid #d7e0ec;
+  border-radius: 0.55rem;
+  background: #f8fafc;
+}
+
+.learning-dump-panel h4 {
+  margin: 0 0 0.4rem;
+  text-align: center;
+}
+
+.learning-dump-note {
+  margin: 0 0 0.65rem;
+  color: #40556d;
+  font-size: 0.9rem;
+}
+
+.learning-dump {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow-x: auto;
+  padding: 0.5rem;
+  border: 1px solid #c5d5e7;
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.learning-dump:focus-visible {
+  outline: 3px solid #e38120;
+  outline-offset: 3px;
+}
+
+.learning-dump-row {
+  display: grid;
+  grid-template-columns: 3.2rem repeat(8, 2.3rem);
+  gap: 0.15rem;
+  align-items: center;
+  width: max-content;
+  margin-bottom: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.learning-dump-row:last-child {
+  margin-bottom: 0;
+}
+
+.learning-row-offset {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  color: #40556d;
+  font-weight: 700;
+  box-shadow: 2px 0 0 #d7e0ec;
+}
+
+.learning-byte {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bdcbd9;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #17283c;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.learning-byte.is-context {
+  border-color: #d7e0ec;
+  background: #edf2f7;
+  color: #526478;
+}
+
+.learning-byte.is-highlighted {
+  border-color: #a35e00;
+  background: #fff0c2;
+  box-shadow: inset 0 0 0 1px #a35e00;
+}
+
+.learning-byte.is-selected {
+  border-color: #805000;
+  background: #ffdc83;
+  box-shadow: inset 0 0 0 2px #805000;
+}
+
+.learning-selection {
+  min-height: 1.4rem;
+  margin: 0.7rem 0 0;
+  color: #28435f;
+  font-size: 0.9rem;
+}
+
+.learning-nibble {
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid #d7e0ec;
+}
+
+.learning-nibble-title {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.learning-nibble-equation {
+  margin: 0 0 0.5rem;
+}
+
+.learning-nibble-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.learning-nibble-part {
+  display: flex;
+  flex: 1 1 11rem;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.55rem;
+  border: 1px solid #bdcbd9;
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.learning-nibble-part.is-highlighted {
+  border-color: #a35e00;
+  background: #fff0c2;
+}
+
+.learning-nibble-part.is-selected {
+  border-color: #805000;
+  background: #ffdc83;
+  box-shadow: inset 0 0 0 1px #805000;
+}
+
+.learning-nibble-part code {
+  font-weight: 700;
+}
+
 .span-2 { grid-column: span 2; }
 .span-3 { grid-column: span 3; }
 .span-4 { grid-column: span 4; }

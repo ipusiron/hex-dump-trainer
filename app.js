@@ -13,6 +13,15 @@
       practiceTab: '演習',
       learnTab: '学習',
       learnTitle: 'パケットの読み方',
+      learnDumpTitle: '教材の16進ダンプ',
+      learnDumpNote: '行頭はフレーム先頭からの16進オフセットです。薄いバイトはこのヘッダーの外側です。ここではASCII欄を省略しています。狭い画面では横にスクロールできます。',
+      learnDumpAria: header => `${header}付近の教材ダンプ。8バイトごとに表示します。`,
+      learnSelectionEmpty: '図か解説行の項目を選ぶと、対応するバイトと位置を確認できます。',
+      learnSelection: (absolute, relative, raw) => `絶対オフセット ${absolute} ／ ヘッダー内 ${relative}（10進数）。元のバイト：${raw}。`,
+      learnNibbleTitle: 'IPv4の先頭1バイトを分けて読む',
+      learnNibblePart: (half, name, value) => `${half}4ビット：${name} ${value}`,
+      learnNibbleUpper: '上位',
+      learnNibbleLower: '下位',
       guideTitle: '最初に：16進ダンプの読み方',
       guideOne: '16進数の2桁（00〜FF）が1バイトです。左端の0000、0008、0010は各行の先頭オフセットで、0010は10進数の16です。',
       guideTwo: '各行は8バイトです。ASCII欄では印字できないバイトを「.」で示します。ASCII表示はバイトの意味を保証しません。',
@@ -75,6 +84,15 @@
       practiceTab: 'Exercises',
       learnTab: 'Learn',
       learnTitle: 'How to read the packets',
+      learnDumpTitle: 'Bytes in the lesson dump',
+      learnDumpNote: 'Row labels are hexadecimal offsets from the frame start. Faded bytes are outside this header. The ASCII column is omitted here. Scroll sideways on a narrow screen.',
+      learnDumpAria: header => `Lesson dump around ${header}, shown in eight-byte rows.`,
+      learnSelectionEmpty: 'Select a diagram field or explanation row to locate its bytes and offsets.',
+      learnSelection: (absolute, relative, raw) => `Absolute offset ${absolute} / within this header ${relative} (decimal). Original bytes: ${raw}.`,
+      learnNibbleTitle: 'Split the first IPv4 byte',
+      learnNibblePart: (half, name, value) => `${half} four bits: ${name} ${value}`,
+      learnNibbleUpper: 'Upper',
+      learnNibbleLower: 'Lower',
       guideTitle: 'Start here: reading a hex dump',
       guideOne: 'Two hexadecimal digits (00–FF) represent one byte. The left labels 0000, 0008, and 0010 are row offsets; 0010 in hex is 16 in decimal.',
       guideTwo: 'Each row contains eight bytes. The ASCII column shows non-printable bytes as “.”. ASCII display does not guarantee a byte’s meaning.',
@@ -142,6 +160,9 @@
   const learnPanel = element('learn-panel');
   const learnItems = Array.from(learnPanel.querySelectorAll('[data-learn-field]'));
   const diagramFields = Array.from(learnPanel.querySelectorAll('.diagram-field'));
+  const learningPanels = Array.from(learnPanel.querySelectorAll('[data-learn-header]'));
+  const learningBytes = core.parseHex(data.frames.ipv4.hex);
+  const learningRows = core.dumpRows(learningBytes, 8);
   const learnHighlight = { hovered: null, focused: null, selected: null };
 
   for (const field of diagramFields) {
@@ -156,11 +177,145 @@
     return item && learnPanel.contains(item) ? item : null;
   }
 
+  function learningRange(start, end, locale) {
+    return start === end ? String(start) : `${start}${locale === 'ja' ? '〜' : '–'}${end}`;
+  }
+
+  function renderLearningDumps() {
+    for (const panel of learningPanels) {
+      const header = panel.dataset.learnHeader;
+      const bounds = data.learningHeaders[header];
+      const locale = panel.closest('[lang]').lang;
+      const t = copy[locale];
+      const title = document.createElement('h4');
+      title.textContent = t.learnDumpTitle;
+      const note = document.createElement('p');
+      note.className = 'learning-dump-note';
+      note.textContent = t.learnDumpNote;
+      const dump = document.createElement('div');
+      dump.className = 'learning-dump';
+      dump.setAttribute('role', 'region');
+      dump.setAttribute('aria-label', t.learnDumpAria(t[header] || 'UDP'));
+      dump.tabIndex = 0;
+
+      for (const row of learningRows) {
+        if (!row.bytes.some(byte => byte.offset >= bounds.start && byte.offset <= bounds.end)) continue;
+        const line = document.createElement('div');
+        line.className = 'learning-dump-row';
+        const offset = document.createElement('span');
+        offset.className = 'learning-row-offset';
+        offset.textContent = row.offsetHex;
+        line.append(offset);
+        for (const byte of row.bytes) {
+          const cell = document.createElement('span');
+          cell.className = 'learning-byte';
+          if (byte.offset < bounds.start || byte.offset > bounds.end) cell.classList.add('is-context');
+          cell.dataset.offset = String(byte.offset);
+          cell.textContent = byte.hex;
+          line.append(cell);
+        }
+        dump.append(line);
+      }
+
+      const selection = document.createElement('p');
+      selection.className = 'learning-selection';
+      selection.textContent = t.learnSelectionEmpty;
+      panel.append(title, note, dump, selection);
+
+      if (header === 'ipv4') {
+        const first = learningBytes[bounds.start];
+        const bits = first.toString(2).padStart(8, '0');
+        const nibble = document.createElement('div');
+        nibble.className = 'learning-nibble';
+        const nibbleTitle = document.createElement('p');
+        nibbleTitle.className = 'learning-nibble-title';
+        nibbleTitle.textContent = t.learnNibbleTitle;
+        const equation = document.createElement('p');
+        equation.className = 'learning-nibble-equation';
+        const hex = document.createElement('code');
+        hex.textContent = core.byteHex(first);
+        const binary = document.createElement('code');
+        binary.textContent = `${bits.slice(0, 4)} ${bits.slice(4)}`;
+        equation.append(hex, document.createTextNode(' = '), binary);
+        const parts = document.createElement('div');
+        parts.className = 'learning-nibble-parts';
+        for (const [key, half, value, group] of [
+          ['ip-version', t.learnNibbleUpper, first >> 4, bits.slice(0, 4)],
+          ['ip-ihl', t.learnNibbleLower, first & 0x0f, bits.slice(4)]
+        ]) {
+          const part = document.createElement('div');
+          part.className = 'learning-nibble-part';
+          part.dataset.nibble = key;
+          const code = document.createElement('code');
+          code.textContent = group;
+          const label = document.createElement('span');
+          label.textContent = t.learnNibblePart(half, key === 'ip-version' ? 'Version' : 'IHL', value);
+          part.append(code, label);
+          parts.append(part);
+        }
+        nibble.append(nibbleTitle, equation, parts);
+        panel.append(nibble);
+      }
+    }
+  }
+
+  function scrollLearningRange(key) {
+    const field = data.learningFields[key];
+    if (!field) return;
+    const panel = element(`learn-${state.locale}`).querySelector(`[data-learn-header="${field.header}"]`);
+    const dump = panel.querySelector('.learning-dump');
+    const visible = Array.from(dump.querySelectorAll('.learning-byte')).filter(byte => {
+      const offset = Number(byte.dataset.offset);
+      return offset >= field.start && offset <= field.end;
+    });
+    if (!visible.length) return;
+    const bounds = dump.getBoundingClientRect();
+    const labelWidth = dump.querySelector('.learning-row-offset').getBoundingClientRect().width;
+    const safeLeft = bounds.left + labelWidth + 8;
+    const safeRight = bounds.right - 8;
+    const left = Math.min(...visible.map(byte => byte.getBoundingClientRect().left));
+    const right = Math.max(...visible.map(byte => byte.getBoundingClientRect().right));
+    const fits = right - left <= safeRight - safeLeft;
+    const first = visible.find(byte => Number(byte.dataset.offset) === field.start).getBoundingClientRect();
+    const targetLeft = fits ? left : first.left;
+    const targetRight = fits ? right : first.right;
+    if (targetLeft < safeLeft) dump.scrollLeft += targetLeft - safeLeft;
+    else if (targetRight > safeRight) dump.scrollLeft += targetRight - safeRight;
+  }
+
   function renderLearningHighlight() {
     const active = learnHighlight.hovered || learnHighlight.focused || learnHighlight.selected;
+    const activeField = active ? data.learningFields[active] : null;
     for (const item of learnItems) {
       item.classList.toggle('is-highlighted', item.dataset.learnField === active);
       item.classList.toggle('is-selected', item.dataset.learnField === active && active === learnHighlight.selected);
+    }
+    for (const panel of learningPanels) {
+      const header = panel.dataset.learnHeader;
+      const locale = panel.closest('[lang]').lang;
+      const t = copy[locale];
+      const matchesHeader = activeField && activeField.header === header;
+      for (const byte of panel.querySelectorAll('.learning-byte')) {
+        const offset = Number(byte.dataset.offset);
+        const matches = matchesHeader && offset >= activeField.start && offset <= activeField.end;
+        byte.classList.toggle('is-highlighted', !!matches);
+        byte.classList.toggle('is-selected', !!matches && active === learnHighlight.selected);
+      }
+      const summary = panel.querySelector('.learning-selection');
+      if (matchesHeader) {
+        const base = data.learningHeaders[header].start;
+        const absolute = learningRange(activeField.start, activeField.end, locale);
+        const relative = learningRange(activeField.start - base, activeField.end - base, locale);
+        const raw = Array.from(learningBytes.slice(activeField.start, activeField.end + 1), core.byteHex).join(' ');
+        summary.textContent = t.learnSelection(absolute, relative, raw);
+      } else {
+        summary.textContent = t.learnSelectionEmpty;
+      }
+      for (const part of panel.querySelectorAll('[data-nibble]')) {
+        const matches = part.dataset.nibble === active;
+        part.classList.toggle('is-highlighted', matches);
+        part.classList.toggle('is-selected', matches && active === learnHighlight.selected);
+      }
     }
     for (const field of diagramFields) {
       field.setAttribute('aria-pressed', String(field.dataset.learnField === learnHighlight.selected));
@@ -170,6 +325,7 @@
   function toggleLearningSelection(key) {
     learnHighlight.selected = learnHighlight.selected === key ? null : key;
     renderLearningHighlight();
+    if (learnHighlight.selected) scrollLearningRange(key);
   }
 
   function words() { return copy[state.locale]; }
@@ -197,6 +353,7 @@
     element('learn-en').hidden = state.locale !== 'en';
     element('skip-link').href = practice ? '#question-title' : '#learn-panel';
     setText('skip-link', practice ? t.skipLink : t.skipLearning);
+    if (!practice && learnHighlight.selected) scrollLearningRange(learnHighlight.selected);
   }
 
   function switchView(view, focusTab) {
@@ -453,14 +610,14 @@
     switchView(view, true);
   });
   learnPanel.addEventListener('pointerover', event => {
-    if (event.pointerType === 'touch') return;
+    if (event.pointerType === 'touch' || !matchMedia('(hover: hover)').matches) return;
     const item = learningItem(event.target);
     if (!item || item.contains(event.relatedTarget)) return;
     learnHighlight.hovered = item.dataset.learnField;
     renderLearningHighlight();
   });
   learnPanel.addEventListener('pointerout', event => {
-    if (event.pointerType === 'touch') return;
+    if (event.pointerType === 'touch' || !matchMedia('(hover: hover)').matches) return;
     const item = learningItem(event.target);
     if (!item || item.contains(event.relatedTarget)) return;
     if (learnHighlight.hovered === item.dataset.learnField) {
@@ -474,6 +631,7 @@
     learnHighlight.focused = item.dataset.learnField;
     learnHighlight.hovered = null;
     renderLearningHighlight();
+    scrollLearningRange(learnHighlight.focused);
   });
   learnPanel.addEventListener('focusout', event => {
     const item = learningItem(event.target);
@@ -567,5 +725,7 @@
     }
   });
 
+  renderLearningDumps();
+  renderLearningHighlight();
   render();
 })();
