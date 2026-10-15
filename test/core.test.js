@@ -64,7 +64,7 @@ test('value grading checks the complete requested notation', () => {
     { value: '20 bytes' }).valid, false);
 });
 
-test('all 32 questions have unique IDs and valid byte-derived answers', () => {
+test('all 45 questions have unique IDs and valid byte-derived answers', () => {
   const ids = new Set();
   let count = 0;
   for (const lesson of data.lessons) {
@@ -82,7 +82,29 @@ test('all 32 questions have unique IDs and valid byte-derived answers', () => {
       count += 1;
     }
   }
-  assert.equal(count, 32);
+  assert.equal(count, 45);
+});
+
+test('ICMPv4 Echo answers use request and reply bytes, including moved IHL', () => {
+  const request = data.frames.echoRequest;
+  const reply = data.frames.echoReply;
+  for (const [field, start, end, value] of [
+    ['icmpStart', 34, 34, '34'], ['icmpHeader', 34, 41, '8'],
+    ['icmpType', 34, 34, '8'], ['icmpCode', 35, 35, '0'],
+    ['icmpChecksum', 36, 37, '0xA28C'], ['icmpIdentifier', 38, 39, '0x1234'],
+    ['icmpSequence', 40, 41, '1']
+  ]) {
+    const answer = core.answerFor({ field }, request);
+    assert.deepEqual([answer.start, answer.end, answer.value], [start, end, value], field);
+  }
+  assert.equal(core.answerFor({ field: 'icmpType' }, reply).value, '0');
+  assert.equal(core.answerFor({ field: 'icmpChecksum' }, reply).value, '0xAA8C');
+  assert.equal(core.answerFor({ field: 'sourceIp' }, reply).value, '198.51.100.20');
+  const longer = request.hex.split(' ');
+  longer[14] = '46';
+  longer[17] = '32';
+  longer.splice(34, 0, '01', '02', '03', '04');
+  assert.equal(core.answerFor({ field: 'icmpType' }, { hex: longer.join(' ') }).start, 38);
 });
 
 test('header boundaries and UDP answers come from bytes, including a longer IHL', () => {

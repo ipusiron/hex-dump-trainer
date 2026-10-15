@@ -63,7 +63,9 @@ test('bilingual packet diagrams preserve the sample values and field widths', ()
     ['C6 33 64 4D'],
     ['CB 00 71 52'],
     ['D6 D8', '00 35'],
-    ['00 1C', 'FD 29']
+    ['00 1C', 'FD 29'],
+    ['08', '00', 'A2 8C'],
+    ['12 34', '00 01']
   ];
   assert.equal((bytes[14] >> 4).toString(), expectedValues[1][0]);
   assert.equal((bytes[14] & 0x0f).toString(), expectedValues[1][1]);
@@ -74,8 +76,8 @@ test('bilingual packet diagrams preserve the sample values and field widths', ()
   for (const locale of ['ja', 'en']) {
     const section = html.split(`<div id="learn-${locale}"`)[1].split(locale === 'ja' ? '<div id="learn-en"' : '</section>\n  </main>')[0];
     const rows = [...section.matchAll(/<div class="diagram-cells diagram-cells--(bytes|bits)">([\s\S]*?)<\/div>/g)];
-    assert.equal(rows.length, 8, `${locale} diagram row count`);
-    assert.equal((section.match(/class="diagram-scroll" role="region"/g) || []).length, 3);
+    assert.equal(rows.length, 10, `${locale} diagram row count`);
+    assert.equal((section.match(/class="diagram-scroll" role="region"/g) || []).length, 4);
 
     rows.forEach((row, index) => {
       const fields = [...row[2].matchAll(/<span class="diagram-field span-(\d+)" data-learn-field="[^"]+"><strong>[^<]+<\/strong><code>([^<]+)<\/code><\/span>/g)];
@@ -92,13 +94,13 @@ test('each diagram field has exactly one matching explanation row in both langua
     const section = html.split(`<div id="learn-${locale}"`)[1].split(locale === 'ja' ? '<div id="learn-en"' : '</section>\n  </main>')[0];
     const diagramKeys = [...section.matchAll(/<span class="diagram-field span-\d+" data-learn-field="([^"]+)"/g)].map(match => match[1]);
     const rowKeys = [...section.matchAll(/<div data-learn-field="([^"]+)"><dt>/g)].map(match => match[1]);
-    assert.equal(diagramKeys.length, 19, `${locale} field count`);
-    assert.equal(new Set(diagramKeys).size, 19, `${locale} unique diagram fields`);
+    assert.equal(diagramKeys.length, 24, `${locale} field count`);
+    assert.equal(new Set(diagramKeys).size, 24, `${locale} unique diagram fields`);
     assert.deepEqual(rowKeys, diagramKeys, `${locale} diagram-to-explanation order`);
     assert.deepEqual(new Set(diagramKeys), new Set(Object.keys(data.learningFields)), `${locale} range metadata`);
     const dumpHeaders = [...section.matchAll(/<section class="learning-dump-panel" data-learn-header="([^"]+)"><\/section>/g)]
       .map(match => match[1]);
-    assert.deepEqual(dumpHeaders, ['ethernet', 'ipv4', 'udp'], `${locale} header dumps`);
+    assert.deepEqual(dumpHeaders, ['ethernet', 'ipv4', 'udp', 'icmp'], `${locale} header dumps`);
   }
 });
 
@@ -110,15 +112,18 @@ test('learning field ranges cover the sample headers and align with eight-byte d
     'ip-fragment': ['ipv4', 20, 21], 'ip-ttl': ['ipv4', 22, 22], 'ip-protocol': ['ipv4', 23, 23],
     'ip-checksum': ['ipv4', 24, 25], 'ip-src': ['ipv4', 26, 29], 'ip-dst': ['ipv4', 30, 33],
     'udp-src': ['udp', 34, 35], 'udp-dst': ['udp', 36, 37], 'udp-length': ['udp', 38, 39],
-    'udp-checksum': ['udp', 40, 41]
+    'udp-checksum': ['udp', 40, 41],
+    'icmp-type': ['icmp', 34, 34], 'icmp-code': ['icmp', 35, 35],
+    'icmp-checksum': ['icmp', 36, 37], 'icmp-id': ['icmp', 38, 39],
+    'icmp-seq': ['icmp', 40, 41]
   };
   assert.deepEqual(Object.fromEntries(Object.entries(data.learningFields).map(([key, field]) => [
     key, [field.header, field.start, field.end]
   ])), expected);
 
-  const expectedRows = { ethernet: [0, 8], ipv4: [8, 16, 24, 32], udp: [32, 40] };
-  const rows = core.dumpRows(bytes, 8);
+  const expectedRows = { ethernet: [0, 8], ipv4: [8, 16, 24, 32], udp: [32, 40], icmp: [32, 40] };
   for (const [header, bounds] of Object.entries(data.learningHeaders)) {
+    const rows = core.dumpRows(header === 'icmp' ? core.parseHex(data.frames.echoRequest.hex) : bytes, 8);
     const fields = Object.values(data.learningFields).filter(field => field.header === header);
     const covered = new Set(fields.flatMap(field => Array.from(
       { length: field.end - field.start + 1 }, (_, index) => field.start + index
