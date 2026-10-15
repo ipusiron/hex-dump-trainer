@@ -71,7 +71,11 @@
       ethernet: 'Ethernet II',
       ipv4: 'IPv4',
       udp: 'UDP',
-      scope: '教材は自作のEthernet II＋IPv4＋UDPフレームです。FCSは含めません。自由入力は別タブで端末内だけで処理します。',
+      icmp: 'ICMPv4',
+      scope: '教材は自作のEthernet II＋IPv4＋UDP／ICMPv4 Echoフレームです。FCSは含めません。自由入力は別タブで端末内だけで処理します。',
+      pingCompareStep: (before, after) => `Aは${before}、Bは${after}です。TypeとChecksumは変わり、Identifier・Sequence・Dataは対応します。IPv4の送信元と宛先は逆になります。`,
+      icmpStartStep: start => `Protocol 1はICMPv4を示します。IPv4先頭14＋IHL×4から、ICMPは${start}で始まります。`,
+      icmpHeaderStep: 'Echoの先頭8バイトはType・Code・Checksum・Identifier・Sequence Numberです。',
       boundaryIpStep: 'EtherType 0x0800はIPv4を示し、Ethernet IIヘッダー14バイトの直後からIPv4が始まります。',
       boundaryLengthStep: length => `IHLからIPv4ヘッダー長は${length}バイトです。開始位置14から数えて範囲を決めます。`,
       boundaryUdpStep: start => `Protocol 17はUDPを示します。IPv4ヘッダーの開始位置14にIHL × 4を加えると、UDPの開始位置${start}です。`,
@@ -156,7 +160,11 @@
       ethernet: 'Ethernet II',
       ipv4: 'IPv4',
       udp: 'UDP',
-      scope: 'Samples are original Ethernet II + IPv4 + UDP frames. FCS is omitted. Your dump is processed only on this device.',
+      icmp: 'ICMPv4',
+      scope: 'Samples are original Ethernet II + IPv4 + UDP / ICMPv4 Echo frames. FCS is omitted. Your dump is processed only on this device.',
+      pingCompareStep: (before, after) => `A is ${before}; B is ${after}. Type and Checksum change; Identifier, Sequence, and Data correspond. IPv4 source and destination reverse.`,
+      icmpStartStep: start => `Protocol 1 identifies ICMPv4. IPv4 starts at 14; add IHL × 4 to find ICMP at ${start}.`,
+      icmpHeaderStep: 'The first eight Echo bytes contain Type, Code, Checksum, Identifier, and Sequence Number.',
       boundaryIpStep: 'EtherType 0x0800 identifies IPv4, which begins after the 14-byte Ethernet II header.',
       boundaryLengthStep: length => `IHL gives a ${length}-byte IPv4 header. Count from the header start at offset 14.`,
       boundaryUdpStep: start => `Protocol 17 identifies UDP. Add IHL × 4 to the IPv4 start at 14 to find UDP at offset ${start}.`,
@@ -180,7 +188,7 @@
   const customCopy = {
     ja: {
       title: '自分の16進ダンプを読む',
-      intro: '1フレーム分のバイト列を貼り付けると、読める範囲のEthernet II・IPv4・UDPフィールドを表示します。演習の採点には使いません。',
+      intro: '1フレーム分のバイト列を貼り付けると、読める範囲のEthernet II・IPv4・UDP／ICMPv4 Echoフィールドを表示します。演習の採点には使いません。',
       formatLabel: '入力形式', rawOption: '生の16進数', offsetOption: 'オフセット付き行',
       rawNote: '例：02 FE DC BA 98 76 ...。空白や改行なしの連続した16進数も使えます。0x、ASCII欄、パケットキャプチャーファイルには非対応です。',
       offsetNote: '例：0000: 02 FE DC BA 98 76。各行は16進オフセット＋コロン＋1～16バイト。先頭は0000、以降は連続させてください。ASCII欄には非対応です。',
@@ -197,7 +205,9 @@
         ttl: 'TTL', protocol: 'Protocol', ipChecksum: 'IPv4ヘッダーチェックサム',
         sourceIp: '送信元IP', destinationIp: '宛先IP', ipOptions: 'IPv4 Options',
         udpSourcePort: '送信元ポート', udpDestinationPort: '宛先ポート',
-        udpLength: 'UDP Length', udpChecksum: 'UDP Checksum'
+        udpLength: 'UDP Length', udpChecksum: 'UDP Checksum',
+        icmpType: 'Type', icmpCode: 'Code', icmpChecksum: 'ICMP Checksum',
+        icmpIdentifier: 'Identifier', icmpSequence: 'Sequence Number', icmpData: 'Data'
       },
       errors: {
         empty: '16進ダンプを入力してください。', textTooLong: '入力テキストは16,384文字以内にしてください。',
@@ -217,8 +227,10 @@
         invalidIpLength: value => `Total Lengthが${value}バイトで、IPv4ヘッダー長より短いため、この先は読み取りません。`,
         ipv4DeclaredTruncated: value => `IPv4のTotal Lengthが示す範囲まで、あと${value}バイト足りません。`,
         trailingBytes: value => `IPv4のTotal Lengthより後に${value}バイトあります。この後続部分は読み取りません。`,
-        fragmented: 'IPv4のフラグメントを示す値があります。再構成は行わず、UDPは読み取りません。',
-        nonUdp: value => `Protocolは${value}です。UDP以外の上位プロトコルは読み取りません。`,
+        fragmented: 'IPv4のフラグメントを示す値があります。再構成は行わず、上位プロトコルは読み取りません。',
+        nonUdp: value => `Protocolは${value}です。UDPとICMPv4以外の上位プロトコルは読み取りません。`,
+        icmpTruncated: 'ICMPv4 Echoのヘッダーが途中で切れています。完全なフィールドだけを表示します。',
+        unsupportedIcmpEcho: value => `ICMP Type/Codeは${value}です。Echo（Type 0または8、Code 0）以外の固有フィールドは読み取りません。`,
         udpTruncated: 'UDPヘッダーの8バイトが揃っていません。UDPフィールドは表示しません。',
         invalidUdpLength: value => `UDP Lengthが${value}バイトで、UDPヘッダーの最小値8より短い値です。`,
         udpLengthMismatch: value => `UDP Lengthは${value}バイトです。IPv4ペイロード長と一致しないため、残りのデータは判定しません。`,
@@ -227,7 +239,7 @@
     },
     en: {
       title: 'Read your own hex dump',
-      intro: 'Paste one frame to inspect complete Ethernet II, IPv4, and UDP fields. This is separate from graded exercises.',
+      intro: 'Paste one frame to inspect complete Ethernet II, IPv4, UDP, and ICMPv4 Echo fields. This is separate from graded exercises.',
       formatLabel: 'Input format', rawOption: 'Raw hexadecimal', offsetOption: 'Rows with offsets',
       rawNote: 'Example: 02 FE DC BA 98 76 ... Continuous hex without whitespace also works. 0x, ASCII columns, and capture files are not supported.',
       offsetNote: 'Example: 0000: 02 FE DC BA 98 76. Each row needs a hexadecimal offset, colon, and 1–16 bytes. Start at 0000 and keep offsets contiguous. No ASCII column.',
@@ -244,7 +256,9 @@
         ttl: 'TTL', protocol: 'Protocol', ipChecksum: 'IPv4 header checksum',
         sourceIp: 'Source IP', destinationIp: 'Destination IP', ipOptions: 'IPv4 Options',
         udpSourcePort: 'Source port', udpDestinationPort: 'Destination port',
-        udpLength: 'UDP Length', udpChecksum: 'UDP Checksum'
+        udpLength: 'UDP Length', udpChecksum: 'UDP Checksum',
+        icmpType: 'Type', icmpCode: 'Code', icmpChecksum: 'ICMP Checksum',
+        icmpIdentifier: 'Identifier', icmpSequence: 'Sequence Number', icmpData: 'Data'
       },
       errors: {
         empty: 'Enter a hex dump.', textTooLong: 'Input text must be at most 16,384 characters.',
@@ -264,8 +278,10 @@
         invalidIpLength: value => `Total Length is ${value} bytes, shorter than the IPv4 header; inspection stops.`,
         ipv4DeclaredTruncated: value => `The IPv4 Total Length extends ${value} bytes beyond the input.`,
         trailingBytes: value => `${value} bytes follow the IPv4 Total Length. They are not inspected.`,
-        fragmented: 'IPv4 fragmentation is indicated. Fragments are not reassembled and UDP is not inspected.',
-        nonUdp: value => `Protocol is ${value}. Non-UDP upper protocols are not inspected.`,
+        fragmented: 'IPv4 fragmentation is indicated. Fragments are not reassembled and the upper protocol is not inspected.',
+        nonUdp: value => `Protocol is ${value}. Upper protocols other than UDP and ICMPv4 are not inspected.`,
+        icmpTruncated: 'The ICMPv4 Echo header is truncated. Only complete fields are shown.',
+        unsupportedIcmpEcho: value => `ICMP Type/Code is ${value}. Message-specific fields outside Echo (Type 0 or 8, Code 0) are not inspected.`,
         udpTruncated: 'The 8-byte UDP header is incomplete. UDP fields are not shown.',
         invalidUdpLength: value => `UDP Length is ${value} bytes, below the minimum UDP header length of 8.`,
         udpLengthMismatch: value => `UDP Length is ${value} bytes and differs from the IPv4 payload length; remaining data is not assessed.`,
@@ -288,7 +304,7 @@
   const diagramFields = Array.from(learnPanel.querySelectorAll('.diagram-field'));
   const learningPanels = Array.from(learnPanel.querySelectorAll('[data-learn-header]'));
   const learningBytes = core.parseHex(data.frames.ipv4.hex);
-  const learningRows = core.dumpRows(learningBytes, 8);
+  const icmpLearningBytes = core.parseHex(data.frames.echoRequest.hex);
   const learnHighlight = { hovered: null, focused: null, selected: null };
 
   for (const field of diagramFields) {
@@ -311,6 +327,7 @@
     for (const panel of learningPanels) {
       const header = panel.dataset.learnHeader;
       const bounds = data.learningHeaders[header];
+      const sampleBytes = header === 'icmp' ? icmpLearningBytes : learningBytes;
       const locale = panel.closest('[lang]').lang;
       const t = copy[locale];
       const title = document.createElement('h4');
@@ -324,7 +341,7 @@
       dump.setAttribute('aria-label', t.learnDumpAria(t[header] || 'UDP'));
       dump.tabIndex = 0;
 
-      for (const row of learningRows) {
+      for (const row of core.dumpRows(sampleBytes, 8)) {
         if (!row.bytes.some(byte => byte.offset >= bounds.start && byte.offset <= bounds.end)) continue;
         const line = document.createElement('div');
         line.className = 'learning-dump-row';
@@ -432,7 +449,8 @@
         const base = data.learningHeaders[header].start;
         const absolute = learningRange(activeField.start, activeField.end, locale);
         const relative = learningRange(activeField.start - base, activeField.end - base, locale);
-        const raw = Array.from(learningBytes.slice(activeField.start, activeField.end + 1), core.byteHex).join(' ');
+        const sampleBytes = header === 'icmp' ? icmpLearningBytes : learningBytes;
+        const raw = Array.from(sampleBytes.slice(activeField.start, activeField.end + 1), core.byteHex).join(' ');
         summary.textContent = t.learnSelection(absolute, relative, raw);
       } else {
         summary.textContent = t.learnSelectionEmpty;
@@ -727,18 +745,20 @@
     }
     if (lesson().compareFrameId) {
       const before = core.answerFor(question(), comparisonFrame());
-      return t.compareStep(before.value, result.value);
+      return lesson().id === 'pingPair' ? t.pingCompareStep(before.value, result.value) : t.compareStep(before.value, result.value);
     }
     if (field === 'ipv4Start') return t.boundaryIpStep;
     if (field === 'ipv4Header') return t.boundaryLengthStep(result.numericValue);
     if (field === 'udpStart') return t.boundaryUdpStep(result.start);
     if (field === 'udpHeader') return t.udpHeaderStep;
     if (field === 'udpLength') return t.udpLengthStep(raw, result.value);
+    if (field === 'icmpStart') return t.icmpStartStep(result.start);
+    if (field === 'icmpHeader') return t.icmpHeaderStep;
     if (field === 'version') return t.versionStep(raw, result.value);
     if (field === 'ihl') return t.ihlStep(raw, result.value);
     if (field === 'headerLength') return t.lengthStep(result.byteValue & 0x0f, result.value);
     if (field === 'etherType') return t.typeStep(result.value);
-    if (field === 'protocol') return t.protocolStep(raw, result.value);
+    if (field === 'protocol') return result.numericValue === 1 ? t.icmpStartStep(14 + core.readField(core.parseHex(frame().hex), 'headerLength')) : t.protocolStep(raw, result.value);
     if (result.format === 'mac') return t.macStep(raw);
     if (result.format === 'ip') return t.ipStep(raw, result.value);
     if (result.format === 'decimal') return t.numberStep(raw, result.value);

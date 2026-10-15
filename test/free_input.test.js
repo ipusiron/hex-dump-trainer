@@ -86,6 +86,29 @@ test('IPv4 options move UDP fields and inconsistent lengths are flagged', () => 
   assert.throws(() => core.inspectPacket(new Uint8Array()), /Invalid frame bytes/);
 });
 
+test('free input identifies ICMPv4 Echo fields and stops safely for other types', () => {
+  for (const [id, type, checksum] of [['echoRequest', '8', '0xA28C'], ['echoReply', '0', '0xAA8C']]) {
+    const report = core.inspectPacket(core.parseDumpText(data.frames[id].hex, 'raw'));
+    assert.deepEqual(report.warnings, []);
+    const fields = Object.fromEntries(report.fields.map(field => [field.key, field]));
+    assert.deepEqual([fields.protocol.value, fields.icmpType.value, fields.icmpCode.value], ['1', type, '0']);
+    assert.deepEqual([fields.icmpChecksum.start, fields.icmpChecksum.end, fields.icmpChecksum.value], [36, 37, checksum]);
+    assert.deepEqual([fields.icmpIdentifier.value, fields.icmpSequence.value], ['0x1234', '1']);
+    assert.deepEqual([fields.icmpData.start, fields.icmpData.end], [42, 59]);
+  }
+  const unsupported = core.parseHex(data.frames.echoRequest.hex);
+  unsupported[34] = 11;
+  const other = core.inspectPacket(unsupported);
+  assert.ok(other.warnings.some(warning => warning.code === 'unsupportedIcmpEcho'));
+  assert.ok(!other.fields.some(field => field.key === 'icmpIdentifier'));
+  const truncated = core.inspectPacket(core.parseHex(data.frames.echoRequest.hex).slice(0, 39));
+  assert.ok(truncated.warnings.some(warning => warning.code === 'icmpTruncated'));
+  assert.ok(!truncated.fields.some(field => field.key === 'icmpIdentifier'));
+  const fragment = core.parseHex(data.frames.echoRequest.hex);
+  fragment[20] = 0x20;
+  assert.ok(!core.inspectPacket(fragment).fields.some(field => field.header === 'icmp'));
+});
+
 test('both READMEs document local input and link to real current screenshots', () => {
   const root = path.join(__dirname, '..');
   for (const file of ['README.md', 'README.en.md']) {
@@ -97,7 +120,12 @@ test('both READMEs document local input and link to real current screenshots', (
       const name = `screenshot-free-input-${width}.png`;
       assert.ok(readme.includes(`assets/${name}`));
       assert.ok(fs.existsSync(path.join(root, 'assets', name)));
+      const icmpName = `screenshot-icmp-learning-${width}.png`;
+      assert.ok(readme.includes(`assets/${icmpName}`));
+      assert.ok(fs.existsSync(path.join(root, 'assets', icmpName)));
     }
+    assert.match(readme, /RFC 792/);
+    assert.match(readme, /45/);
   }
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   for (const id of ['custom-tab', 'custom-panel', 'custom-form', 'custom-input', 'custom-results', 'custom-fields']) {

@@ -73,7 +73,7 @@ try {
   }
   async function evaluate(expression) {
     const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
-    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
+    if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
     return result.result.value;
   }
   await send('Page.enable');
@@ -194,9 +194,54 @@ try {
   })()`);
   assert.deepEqual(controls, { home: 'true', end: 'true', left: 'true', clearedText: '', clearedResult: true });
 
+  const icmpUi = await evaluate(`(() => {
+    document.querySelector('#language-button').click();
+    const select = document.querySelector('#custom-format');
+    select.value = 'raw';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const input = document.querySelector('#custom-input');
+    input.value = HexDumpData.frames.echoReply.hex;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelector('#custom-analyze').click();
+    const type = [...document.querySelectorAll('#custom-fields button')]
+      .find(item => item.textContent.includes('ICMPv4 · Type'));
+    type.click();
+    const inspected = document.querySelectorAll('#custom-dump .is-inspected').length;
+    const warningCount = document.querySelectorAll('#custom-warnings li').length;
+    document.querySelector('#learn-tab').click();
+    const field = document.querySelector('#learn-icmp-ja [data-learn-field="icmp-type"]');
+    field.click();
+    const highlighted = document.querySelectorAll('#learn-icmp-ja .learning-byte.is-highlighted').length;
+    const selectedText = document.querySelector('#learn-icmp-ja .learning-selection').textContent;
+    document.querySelector('#practice-tab').click();
+    document.querySelector('[data-lesson-index="8"]').click();
+    const answer = document.querySelector('#answer-input');
+    answer.value = '0';
+    answer.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelector('#answer-form').requestSubmit();
+    return { inspected, warningCount, highlighted, selectedText,
+      feedback: document.querySelector('#feedback').textContent,
+      pairVisible: !document.querySelector('#comparison-reference').hidden };
+  })()`);
+  assert.equal(icmpUi.inspected, 1, JSON.stringify(icmpUi));
+  assert.equal(icmpUi.warningCount, 0, JSON.stringify(icmpUi));
+  assert.equal(icmpUi.highlighted, 1, JSON.stringify(icmpUi));
+  assert.match(icmpUi.selectedText, /34/);
+  assert.match(icmpUi.feedback, /正解/);
+  assert.equal(icmpUi.pairVisible, true);
+  if (pageUrl.startsWith('file:') && process.env.DAY114_CAPTURE_ICMP === '1') {
+    await evaluate("document.querySelector('#learn-tab').click()");
+    for (const width of [390, 1280]) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 768 });
+      await evaluate("document.querySelector('#learn-icmp-ja').scrollIntoView({ block: 'start' })");
+      const image = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+      await writeFile(resolve(`assets/screenshot-icmp-learning-${width}.png`), Buffer.from(image.data, 'base64'));
+    }
+  }
+  await evaluate("document.querySelector('#custom-tab').click()");
+
   // Return to a representative raw-input result for visual checks.
   await evaluate(`(() => {
-    document.querySelector('#language-button').click();
     const select = document.querySelector('#custom-format');
     select.value = 'raw';
     select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -212,6 +257,19 @@ try {
     const size = await evaluate(`({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, tabCount: document.querySelectorAll('.main-tab').length })`);
     assert.equal(size.tabCount, 3);
     assert.ok(size.scrollWidth <= size.width, `Overflow at ${width}px: ${JSON.stringify(size)}`);
+    const icmpLayout = await evaluate(`(() => {
+      document.querySelector('#learn-tab').click();
+      const card = document.querySelector('#learn-icmp-ja');
+      const diagram = card.querySelector('.diagram-scroll');
+      const dump = card.querySelector('.learning-dump');
+      const result = { page: document.documentElement.scrollWidth, viewport: innerWidth,
+        diagramScroll: diagram.scrollWidth > diagram.clientWidth,
+        dumpScroll: dump.scrollWidth > dump.clientWidth };
+      document.querySelector('#custom-tab').click();
+      return result;
+    })()`);
+    assert.ok(icmpLayout.page <= icmpLayout.viewport, `ICMP page overflow at ${width}px: ${JSON.stringify(icmpLayout)}`);
+    if (width <= 390) assert.equal(icmpLayout.diagramScroll, true, `ICMP diagram scroll at ${width}px`);
     if ((width === 390 || width === 1280) && pageUrl.startsWith('file:') && process.env.DAY114_SKIP_SCREENSHOTS !== '1') {
       await evaluate("document.querySelector('#custom-results').scrollIntoView({ block: 'start' })");
       const image = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -220,7 +278,7 @@ try {
   }
   assert.deepEqual(browserErrors, []);
   assert.deepEqual(externalRequests, []);
-  console.log(JSON.stringify({ url: pageUrl, sample, highlight, language, injection, partial, offset, controls, widths: [320, 390, 768, 1280], browserErrors, externalRequests }, null, 2));
+  console.log(JSON.stringify({ url: pageUrl, sample, highlight, language, injection, partial, offset, controls, icmpUi, widths: [320, 390, 768, 1280], browserErrors, externalRequests }, null, 2));
 } finally {
   socket?.close();
   chrome.kill();

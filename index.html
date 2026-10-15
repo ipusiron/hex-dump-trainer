@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#102238">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'; connect-src 'none'">
   <title>Hex Dump Trainer | Day114</title>
-  <meta name="description" content="Practice reading hex dumps and inspect your own Ethernet II, IPv4, and UDP frame locally.">
+  <meta name="description" content="Practice reading hex dumps and inspect Ethernet II, IPv4, UDP, and ICMPv4 Echo frames locally.">
   <link rel="stylesheet" href="style.css">
   <script src="core.js" defer></script>
   <script src="data.js" defer></script>
@@ -146,6 +146,7 @@
           <a href="#learn-ethernet-ja">Ethernet II</a>
           <a href="#learn-ipv4-ja">IPv4</a>
           <a href="#learn-udp-ja">UDP</a>
+          <a href="#learn-icmp-ja">ICMPv4とPing</a>
         </nav>
         <section class="panel learning-card" aria-labelledby="learn-map-ja">
           <h3 id="learn-map-ja">3つのヘッダーの境界</h3>
@@ -235,6 +236,29 @@
           <p>データはオフセット42からです。ポート番号だけでアプリケーションの内容を断定しないでください。演習ではChecksumフィールドの値を読むだけで、再計算は求めません。</p>
           <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768（別タブ）</a>のFormatとFieldsで、4つのUDPフィールドとLengthの範囲、チェックサムの疑似ヘッダーを確認できます。</p>
         </article>
+        <article id="learn-icmp-ja" class="panel learning-card" aria-labelledby="learn-icmp-title-ja">
+          <h3 id="learn-icmp-title-ja">ICMPv4 Echo：Pingの往復を読む</h3>
+          <p>ここからは別の自作フレームです。IPv4のProtocol <code>01</code>はICMPv4を示します。IHLが5なので、ICMPは絶対オフセット<code>34</code>から始まります。例は同じLAN上の2台の通信です。</p>
+          <figure class="packet-figure">
+            <figcaption>Echo Requestの固定8バイト。1行は32ビット（4バイト）で、箱の幅はビット数に比例します。<span class="diagram-hint">図は横にスクロールできます。</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="ICMPv4 Echoの32ビット配置図" tabindex="0"><div class="diagram-layout">
+              <div class="diagram-row"><span class="diagram-offset">byte</span><div class="diagram-bit-axis"><span>bit 0〜7</span><span>8〜15</span><span>16〜23</span><span>24〜31</span></div></div>
+              <div class="diagram-row"><span class="diagram-offset">34〜37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8" data-learn-field="icmp-type"><strong>Type</strong><code>08</code></span><span class="diagram-field span-8" data-learn-field="icmp-code"><strong>Code</strong><code>00</code></span><span class="diagram-field span-16" data-learn-field="icmp-checksum"><strong>Checksum</strong><code>A2 8C</code></span></div></div>
+              <div class="diagram-row"><span class="diagram-offset">38〜41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="icmp-id"><strong>Identifier</strong><code>12 34</code></span><span class="diagram-field span-16" data-learn-field="icmp-seq"><strong>Sequence</strong><code>00 01</code></span></div></div>
+            </div></div>
+          </figure>
+          <section class="learning-dump-panel" data-learn-header="icmp"></section>
+          <dl class="learning-fields">
+            <div data-learn-field="icmp-type"><dt><code>34</code> Type</dt><dd><code>08</code>はEcho Request、応答では<code>00</code>です。</dd></div>
+            <div data-learn-field="icmp-code"><dt><code>35</code> Code</dt><dd><code>00</code>。EchoのCodeは0です。</dd></div>
+            <div data-learn-field="icmp-checksum"><dt><code>36〜37</code> Checksum</dt><dd><code>A2 8C</code>。ICMPメッセージ全体を対象とし、応答では再計算します。</dd></div>
+            <div data-learn-field="icmp-id"><dt><code>38〜39</code> Identifier</dt><dd><code>12 34</code> → <code>0x1234</code>。要求と応答の対応付けに使います。</dd></div>
+            <div data-learn-field="icmp-seq"><dt><code>40〜41</code> Sequence Number</dt><dd><code>00 01</code> → <code>1</code>。応答にも同じ値が入ります。</dd></div>
+          </dl>
+          <p><code>42〜59</code>はデータ「<code>PING-LESSON-000001</code>」です。応答はIdentifier・Sequence Number・データをそのまま返し、IPv4の送信元と宛先が逆になります。Typeは<code>00</code>、ICMP Checksumは<code>AA 8C</code>に変わります。TTLは両方向で同じとは限りません。</p>
+          <p>Pingの往復時間（RTT）は送信側が送信から受信までを計測します。EchoヘッダーにRTTフィールドはありません。この教材は実際のネットワークにPingを送信しません。Time ExceededとICMPv6は別の教材とします。</p>
+          <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc792.html" target="_blank" rel="noopener noreferrer">RFC 792（別タブ）</a>のEcho or Echo Reply Message、<a href="https://www.iana.org/assignments/protocol-numbers/" target="_blank" rel="noopener noreferrer">IANA Protocol Numbers（別タブ）</a>。</p>
+        </article>
         <button class="primary-button back-to-practice" type="button" data-open-practice>演習へ戻る</button>
       </div>
 
@@ -245,6 +269,7 @@
           <a href="#learn-ethernet-en">Ethernet II</a>
           <a href="#learn-ipv4-en">IPv4</a>
           <a href="#learn-udp-en">UDP</a>
+          <a href="#learn-icmp-en">ICMPv4 and Ping</a>
         </nav>
         <section class="panel learning-card" aria-labelledby="learn-map-en">
           <h3 id="learn-map-en">Where the three headers begin and end</h3>
@@ -333,6 +358,29 @@
           </dl>
           <p>Data begins at offset 42. A port number alone does not establish the application content. Exercises ask you to read the Checksum field, not recalculate it.</p>
           <p class="learning-reference">Reference: the Format and Fields sections of <a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768 (new tab)</a> define the four UDP fields, the Length coverage, and the checksum pseudo-header.</p>
+        </article>
+        <article id="learn-icmp-en" class="panel learning-card" aria-labelledby="learn-icmp-title-en">
+          <h3 id="learn-icmp-title-en">ICMPv4 Echo: read a Ping exchange</h3>
+          <p>This uses a separate original frame. IPv4 Protocol <code>01</code> identifies ICMPv4. With IHL 5, ICMP starts at absolute offset <code>34</code>. This is an example of two hosts on the same LAN.</p>
+          <figure class="packet-figure">
+            <figcaption>The fixed eight bytes of an Echo Request. Each row is 32 bits (four bytes); box widths follow bit lengths.<span class="diagram-hint">Scroll horizontally to see the full diagram.</span></figcaption>
+            <div class="diagram-scroll" role="region" aria-label="32-bit ICMPv4 Echo diagram" tabindex="0"><div class="diagram-layout">
+              <div class="diagram-row"><span class="diagram-offset">byte</span><div class="diagram-bit-axis"><span>bit 0–7</span><span>8–15</span><span>16–23</span><span>24–31</span></div></div>
+              <div class="diagram-row"><span class="diagram-offset">34–37</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-8" data-learn-field="icmp-type"><strong>Type</strong><code>08</code></span><span class="diagram-field span-8" data-learn-field="icmp-code"><strong>Code</strong><code>00</code></span><span class="diagram-field span-16" data-learn-field="icmp-checksum"><strong>Checksum</strong><code>A2 8C</code></span></div></div>
+              <div class="diagram-row"><span class="diagram-offset">38–41</span><div class="diagram-cells diagram-cells--bits"><span class="diagram-field span-16" data-learn-field="icmp-id"><strong>Identifier</strong><code>12 34</code></span><span class="diagram-field span-16" data-learn-field="icmp-seq"><strong>Sequence</strong><code>00 01</code></span></div></div>
+            </div></div>
+          </figure>
+          <section class="learning-dump-panel" data-learn-header="icmp"></section>
+          <dl class="learning-fields">
+            <div data-learn-field="icmp-type"><dt><code>34</code> Type</dt><dd><code>08</code> is Echo Request; a reply uses <code>00</code>.</dd></div>
+            <div data-learn-field="icmp-code"><dt><code>35</code> Code</dt><dd><code>00</code>. Echo uses Code 0.</dd></div>
+            <div data-learn-field="icmp-checksum"><dt><code>36–37</code> Checksum</dt><dd><code>A2 8C</code>. It covers the ICMP message and is recomputed for the reply.</dd></div>
+            <div data-learn-field="icmp-id"><dt><code>38–39</code> Identifier</dt><dd><code>12 34</code> → <code>0x1234</code>. It helps match a reply with its request.</dd></div>
+            <div data-learn-field="icmp-seq"><dt><code>40–41</code> Sequence Number</dt><dd><code>00 01</code> → <code>1</code>. The reply returns the same number.</dd></div>
+          </dl>
+          <p>Offsets <code>42–59</code> hold <code>PING-LESSON-000001</code>. The reply returns the same Identifier, Sequence Number, and data; IPv4 source and destination reverse. Its Type becomes <code>00</code> and ICMP Checksum <code>AA 8C</code>. TTL need not be the same in each direction.</p>
+          <p>The sender measures round-trip time (RTT) between sending and receiving. RTT is not an Echo header field. This lesson sends no real Ping traffic. Time Exceeded and ICMPv6 are separate future topics.</p>
+          <p class="learning-reference">References: <a href="https://www.rfc-editor.org/rfc/rfc792.html" target="_blank" rel="noopener noreferrer">RFC 792 (new tab)</a>, Echo or Echo Reply Message; <a href="https://www.iana.org/assignments/protocol-numbers/" target="_blank" rel="noopener noreferrer">IANA Protocol Numbers (new tab)</a>.</p>
         </article>
         <button class="primary-button back-to-practice" type="button" data-open-practice>Return to exercises</button>
       </div>

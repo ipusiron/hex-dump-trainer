@@ -10,10 +10,10 @@
 
 **Day114 - Security Tools with Generative AI 200**
 
-Hex Dump Trainer is an interactive learning tool for finding byte positions in a hex dump and reading Ethernet II, IPv4, and UDP headers.
+Hex Dump Trainer is an interactive learning tool for finding byte positions in a hex dump and reading Ethernet II, IPv4, UDP, and ICMPv4 Echo headers.
 If you are new to hex dumps, you can start with a short introduction.
 No book is required.
-The Learn tab uses packet diagrams, hex bytes from a built-in frame, offset explanations, and links to the relevant RFCs to explain Ethernet II, IPv4, and UDP. Matching diagram fields, explanation rows, and original bytes highlight together.
+The Learn tab uses packet diagrams, hex bytes from built-in frames, offset explanations, and links to the relevant RFCs to explain Ethernet II, IPv4, UDP, and ICMPv4 Echo. Matching diagram fields, explanation rows, and original bytes highlight together.
 
 ## 🌐 Live app
 
@@ -36,10 +36,14 @@ The Your dump tab also lets you paste your own hex text and match readable field
 
 ![The inspection result on a narrow screen](assets/screenshot-free-input-390.png)
 
+![The ICMPv4 Echo diagram linked to the hex dump](assets/screenshot-icmp-learning-1280.png)
+
+![The linked ICMPv4 Echo diagram on a narrow screen](assets/screenshot-icmp-learning-390.png)
+
 ## ✨ What you will learn
 
 - How zero-based offsets correspond to byte positions
-- How field order and widths appear in packet diagrams (32-bit rows for IPv4 and UDP)
+- How field order and widths appear in packet diagrams (32-bit rows for IPv4, UDP, and ICMPv4 Echo)
 - How to match diagram fields, explanation rows, and original hex bytes by hover, tap, or keyboard
 - How frame-absolute and header-relative offsets differ, and how Version and IHL split one byte into two four-bit values
 - How to locate Ethernet II destination and source MAC addresses and EtherType
@@ -47,6 +51,8 @@ The Your dump tab also lets you paste your own hex text and match readable field
 - How to calculate the IPv4 header length from IHL
 - How to locate header boundaries from EtherType, IHL, and Protocol
 - How to locate and read UDP ports, Length, and the Checksum field in graded exercises
+- How to read Echo Request and Reply Type, Code, Checksum, Identifier, Sequence Number, and data
+- How IPv4 addresses reverse across a Ping exchange, and why the sender measures RTT rather than reading it from an Echo header field
 - How to compare two frames to find the first changed byte, TTL, and IPv4 header checksum
 - How to match fields in your own hex dump to their original bytes
 
@@ -60,6 +66,7 @@ The Your dump tab also lets you paste your own hex text and match readable field
 6. In Your dump, choose an input format, paste one frame of hex text, and press Inspect. Select a field to highlight its bytes. This tab does not grade input.
 
 Header boundaries asks you to identify the IPv4 range and UDP start. UDP asks for ports, Length, and the Checksum field. Compare two packets shows frames A and B; compare them from the start to find the first difference and read values from B. Differences are not highlighted before grading.
+ICMPv4 Echo covers the fixed eight bytes of a request. Ping request and reply presents request A and reply B side by side to compare Type, Checksum, Identifier, Sequence Number, and IPv4 addresses. It sends no network traffic.
 
 Changing languages preserves the active tab, current question, selection, input, and result. Switching lessons starts the selected lesson unanswered while keeping its completion record.
 
@@ -84,9 +91,9 @@ The bytes are `00 30`. Read in network byte order, they form `0x0030`, or `48` b
 ## ⚠️ Scope and limitations
 
 The lessons use Ethernet II frames containing IPv4 headers without options. The sample byte arrays omit the frame check sequence (FCS).
-Their UDP datagrams have consistent lengths and checksums. UDP field values are graded, but checksum recalculation is not required.
-Your dump displays only complete, readable Ethernet II, IPv4, and UDP fields. IPv4 options are shown as a byte range, and IHL moves the UDP start. Truncated input, inconsistent lengths, and unsupported EtherTypes or Protocol values produce warnings. Fragments are not reassembled, and checksum validity is not checked.
-VLAN, IPv6, ARP, TCP, ICMPv4, and pcap/pcapng import are not supported.
+The original UDP and ICMPv4 Echo frames have consistent lengths and checksums. Field values are graded, but checksum recalculation is not required.
+Your dump displays complete, readable Ethernet II, IPv4, UDP, and ICMPv4 Echo fields. IPv4 options are shown as a byte range, and IHL moves the upper-header start. Truncated input, inconsistent lengths, and unsupported EtherTypes or Protocol values produce warnings. Fragments are not reassembled, and checksum validity is not checked.
+Only Echo-specific fields (Type 0 or 8, Code 0) are inspected. Other ICMPv4 types show only Type, Code, and Checksum. VLAN, IPv6, ARP, TCP, ICMPv6, and pcap/pcapng import are not supported.
 
 ## 🔒 Data and privacy
 
@@ -94,7 +101,7 @@ Answers, progress, and your pasted text and result stay in page memory and disap
 
 ## 🧪 Development and tests
 
-The app uses only HTML, CSS, and JavaScript, with no package dependencies. With Node.js 22, run the byte-reading, grading, all-question, five-frame IPv4/UDP length and checksum, and free-input parsing tests (32 questions):
+The app uses only HTML, CSS, and JavaScript, with no package dependencies. With Node.js 22, run the byte-reading, grading, all-question, seven-frame IPv4/UDP/ICMPv4 length and checksum, and free-input parsing tests (45 questions):
 
 ```sh
 node --test test/*.test.js
@@ -114,6 +121,7 @@ hex-dump-trainer/
 ├── assets/screenshot-comparison-20261015.png # Two-packet comparison screenshot
 ├── assets/screenshot-comparison-mobile-20261015.png # Mobile comparison screenshot
 ├── assets/screenshot-free-input-{390,1280}.png # Your dump screenshots
+├── assets/screenshot-icmp-learning-{390,1280}.png # ICMPv4 learning screenshots
 ├── index.html               # Exercise, learning, and input interface
 ├── style.css                # Mobile-first styles
 ├── app.js                   # Interface, tabs, and progress
@@ -134,6 +142,7 @@ This project uses the MIT License. See [LICENSE](LICENSE) for the full text.
 - [RFC 894: A Standard for the Transmission of IP Datagrams over Ethernet Networks](https://www.rfc-editor.org/rfc/rfc894.html)
 - [RFC 791: Internet Protocol](https://www.rfc-editor.org/rfc/rfc791.html)
 - [RFC 768: User Datagram Protocol](https://www.rfc-editor.org/rfc/rfc768.html)
+- [RFC 792: Internet Control Message Protocol](https://www.rfc-editor.org/rfc/rfc792.html)
 - [IANA: Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/)
 - [RFC 5737: IPv4 Address Blocks Reserved for Documentation](https://www.rfc-editor.org/rfc/rfc5737.html)
 

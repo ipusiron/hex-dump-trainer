@@ -29,6 +29,13 @@
     udpDestinationPort: { header: 'udp', format: 'decimal', dynamic: true },
     udpLength: { header: 'udp', format: 'decimal', dynamic: true },
     udpChecksum: { header: 'udp', format: 'hex', dynamic: true },
+    icmpStart: { header: 'icmp', format: 'decimal', dynamic: true },
+    icmpHeader: { header: 'icmp', format: 'decimal', dynamic: true },
+    icmpType: { header: 'icmp', format: 'decimal', dynamic: true },
+    icmpCode: { header: 'icmp', format: 'decimal', dynamic: true },
+    icmpChecksum: { header: 'icmp', format: 'hex', dynamic: true },
+    icmpIdentifier: { header: 'icmp', format: 'hex', dynamic: true },
+    icmpSequence: { header: 'icmp', format: 'decimal', dynamic: true },
     firstChangedByte: { header: 'ipv4', format: 'decimal', dynamic: true }
   });
 
@@ -67,6 +74,19 @@
     return { ipv4Start, ipv4Length, udpStart };
   }
 
+  function icmpLayout(bytes) {
+    if (bytes.length < 42 || readNumber(bytes.slice(12, 14)) !== 0x0800 ||
+        bytes[14] >>> 4 !== 4 || (bytes[14] & 15) < 5 || bytes[23] !== 1) {
+      throw new Error('Frame must contain Ethernet II, IPv4, and ICMPv4 Echo');
+    }
+    const start = 14 + (bytes[14] & 15) * 4;
+    const ipEnd = 14 + readNumber(bytes.slice(16, 18));
+    if (start + 8 > Math.min(ipEnd, bytes.length) || ![0, 8].includes(bytes[start]) || bytes[start + 1] !== 0) {
+      throw new Error('Frame must contain a complete ICMPv4 Echo header');
+    }
+    return { start };
+  }
+
   function fieldFor(key, bytes, comparisonBytes) {
     const field = FIELDS[key];
     if (!field) throw new Error('Unknown field');
@@ -76,6 +96,17 @@
       const start = bytes.findIndex((byte, index) => byte !== comparisonBytes[index]);
       if (start < 0) throw new Error('Frames do not differ');
       return { ...field, start, end: start };
+    }
+    if (field.header === 'icmp') {
+      const { start } = icmpLayout(bytes);
+      const icmpRanges = {
+        icmpStart: [start, start], icmpHeader: [start, start + 7],
+        icmpType: [start, start], icmpCode: [start + 1, start + 1],
+        icmpChecksum: [start + 2, start + 3],
+        icmpIdentifier: [start + 4, start + 5], icmpSequence: [start + 6, start + 7]
+      };
+      const [icmpStart, icmpEnd] = icmpRanges[key];
+      return { ...field, start: icmpStart, end: icmpEnd, icmpStart: start };
     }
     const { ipv4Start, ipv4Length, udpStart } = packetLayout(bytes);
     const ranges = {
@@ -105,7 +136,8 @@
     if (key === 'headerLength') return (raw[0] & 0x0f) * 4;
     if (key === 'ipv4Header') return field.ipv4Length;
     if (key === 'udpHeader') return 8;
-    if (key === 'ipv4Start' || key === 'udpStart' || key === 'firstChangedByte') return field.start;
+    if (key === 'icmpHeader') return 8;
+    if (key === 'ipv4Start' || key === 'udpStart' || key === 'icmpStart' || key === 'firstChangedByte') return field.start;
     if (field.format === 'mac') return Array.from(raw, byteHex).join(':');
     if (field.format === 'ip') return Array.from(raw).join('.');
     return readNumber(raw);
@@ -129,7 +161,7 @@
     return {
       start: field.start,
       end: field.end,
-      relativeStart: field.start - (field.header === 'ipv4' ? 14 : field.header === 'udp' ? packetLayout(bytes).udpStart : 0),
+      relativeStart: field.start - (field.header === 'ipv4' ? 14 : field.header === 'udp' ? packetLayout(bytes).udpStart : field.header === 'icmp' ? field.icmpStart : 0),
       header: field.header,
       rawHex: Array.from(raw, byteHex).join(' '),
       value,
@@ -292,6 +324,33 @@
       return { fields, warnings };
     }
     const protocol = bytes[23];
+    if (protocol === 1) {
+      const start = 14 + ipHeaderLength;
+      const availableEnd = Math.min(bytes.length, ipEnd);
+      if (start + 4 > availableEnd) {
+        warn('icmpTruncated');
+        return { fields, warnings };
+      }
+      add('icmpType', 'icmp', start, start, 'decimal');
+      add('icmpCode', 'icmp', start + 1, start + 1, 'decimal');
+      add('icmpChecksum', 'icmp', start + 2, start + 3, 'hex');
+      const type = bytes[start];
+      const code = bytes[start + 1];
+      if ((type !== 0 && type !== 8) || code !== 0) {
+        warn('unsupportedIcmpEcho', `${type}/${code}`);
+        return { fields, warnings };
+      }
+      if (start + 8 > availableEnd) {
+        warn('icmpTruncated');
+        return { fields, warnings };
+      }
+      add('icmpIdentifier', 'icmp', start + 4, start + 5, 'hex');
+      add('icmpSequence', 'icmp', start + 6, start + 7, 'decimal');
+      if (ipEnd <= bytes.length && ipEnd > start + 8) {
+        add('icmpData', 'icmp', start + 8, ipEnd - 1, 'hex');
+      }
+      return { fields, warnings };
+    }
     if (protocol !== 17) {
       warn('nonUdp', protocol);
       return { fields, warnings };

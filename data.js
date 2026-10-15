@@ -6,7 +6,7 @@
 })(globalThis, function () {
   'use strict';
 
-  // Versioned, original teaching frames. Each is Ethernet II + IPv4 + UDP.
+  // Versioned, original teaching frames. Ethernet II + IPv4 with UDP or ICMPv4 Echo.
   const frames = Object.freeze({
     intro: {
       id: 'intro', version: '1.0.0',
@@ -28,6 +28,14 @@
       id: 'compare', version: '1.0.0',
       // The mixed frame after one IPv4 hop: TTL -1, IPv4 checksum updated.
       hex: '02 de ad be ef 14 02 01 23 45 67 89 08 00 45 00 00 31 40 04 40 00 5f 11 dc 76 c0 00 02 78 cb 00 71 c8 30 39 fd e8 00 1d c0 8f 4d 49 58 45 44 2d 46 49 45 4c 44 53 2d 4c 45 53 53 4f 4e 2d 44'
+    },
+    echoRequest: {
+      id: 'echoRequest', version: '1.0.0',
+      hex: '02 42 AC 11 00 02 02 00 5E 10 20 30 08 00 45 00 00 2E 51 01 40 00 40 01 FD 7B C0 00 02 0A C6 33 64 14 08 00 A2 8C 12 34 00 01 50 49 4E 47 2D 4C 45 53 53 4F 4E 2D 30 30 30 30 30 31'
+    },
+    echoReply: {
+      id: 'echoReply', version: '1.0.0',
+      hex: '02 00 5E 10 20 30 02 42 AC 11 00 02 08 00 45 00 00 2E 62 02 40 00 38 01 F4 7A C6 33 64 14 C0 00 02 0A 00 00 AA 8C 12 34 00 01 50 49 4E 47 2D 4C 45 53 53 4F 4E 2D 30 30 30 30 30 31'
     }
   });
 
@@ -130,13 +138,37 @@
         { id: 'compare-checksum', kind: 'compare', field: 'ipChecksum', format: 'hex',
           prompt: { ja: 'AとBを比べ、BのIPv4ヘッダーチェックサムを0x付き4桁の16進数で入力してください。', en: 'Compare A and B, then enter B\'s IPv4 header checksum as four hex digits with 0x.' } }
       ]
+    },
+    {
+      id: 'icmp', frameId: 'echoRequest', title: { ja: 'ICMPv4 Echo', en: 'ICMPv4 Echo' },
+      questions: [
+        { id: 'icmp-protocol', kind: 'value', field: 'protocol', format: 'decimal', prompt: { ja: 'IPv4 Protocolの値を10進数で入力してください。', en: 'Enter the IPv4 Protocol value in decimal.' } },
+        { id: 'icmp-start', kind: 'range', field: 'icmpStart', prompt: { ja: 'ICMPv4ヘッダーの開始バイトを選んでください。', en: 'Select the first byte of the ICMPv4 header.' } },
+        { id: 'icmp-header', kind: 'range', field: 'icmpHeader', prompt: { ja: 'Echoの固定8バイトの範囲を選んでください。', en: 'Select the eight fixed bytes of the Echo message.' } },
+        { id: 'icmp-type', kind: 'value', field: 'icmpType', format: 'decimal', prompt: { ja: 'Echo RequestのTypeを10進数で入力してください。', en: 'Enter the Echo Request Type in decimal.' } },
+        { id: 'icmp-code', kind: 'value', field: 'icmpCode', format: 'decimal', prompt: { ja: 'Echo RequestのCodeを10進数で入力してください。', en: 'Enter the Echo Request Code in decimal.' } },
+        { id: 'icmp-id', kind: 'value', field: 'icmpIdentifier', format: 'hex', prompt: { ja: 'Identifierを0x付き4桁の16進数で入力してください。', en: 'Enter Identifier as four hex digits with 0x.' } },
+        { id: 'icmp-seq', kind: 'value', field: 'icmpSequence', format: 'decimal', prompt: { ja: 'Sequence Numberを10進数で入力してください。', en: 'Enter Sequence Number in decimal.' } }
+      ]
+    },
+    {
+      id: 'pingPair', frameId: 'echoReply', compareFrameId: 'echoRequest', title: { ja: 'Pingの往復', en: 'Ping request and reply' },
+      questions: [
+        { id: 'reply-type', kind: 'compare', field: 'icmpType', format: 'decimal', prompt: { ja: 'Aの要求とBの応答を比べ、BのTypeを10進数で入力してください。', en: 'Compare request A and reply B. Enter B’s Type in decimal.' } },
+        { id: 'reply-checksum', kind: 'compare', field: 'icmpChecksum', format: 'hex', prompt: { ja: 'BのICMP Checksumを0x付き4桁の16進数で入力してください。', en: 'Enter B’s ICMP Checksum as four hex digits with 0x.' } },
+        { id: 'reply-id', kind: 'compare', field: 'icmpIdentifier', format: 'hex', prompt: { ja: 'BのIdentifierを0x付き4桁の16進数で入力してください。', en: 'Enter B’s Identifier as four hex digits with 0x.' } },
+        { id: 'reply-seq', kind: 'compare', field: 'icmpSequence', format: 'decimal', prompt: { ja: 'BのSequence Numberを10進数で入力してください。', en: 'Enter B’s Sequence Number in decimal.' } },
+        { id: 'reply-src', kind: 'compare', field: 'sourceIp', format: 'ip', prompt: { ja: 'Bの送信元IPv4アドレスを入力してください。', en: 'Enter B’s source IPv4 address.' } },
+        { id: 'reply-dst', kind: 'compare', field: 'destinationIp', format: 'ip', prompt: { ja: 'Bの宛先IPv4アドレスを入力してください。', en: 'Enter B’s destination IPv4 address.' } }
+      ]
     }
   ]);
 
   const learningHeaders = Object.freeze({
     ethernet: Object.freeze({ start: 0, end: 13 }),
     ipv4: Object.freeze({ start: 14, end: 33 }),
-    udp: Object.freeze({ start: 34, end: 41 })
+    udp: Object.freeze({ start: 34, end: 41 }),
+    icmp: Object.freeze({ start: 34, end: 41 })
   });
   function learningField(header, start, end) {
     return Object.freeze({ header, start, end });
@@ -160,8 +192,13 @@
     'udp-src': learningField('udp', 34, 35),
     'udp-dst': learningField('udp', 36, 37),
     'udp-length': learningField('udp', 38, 39),
-    'udp-checksum': learningField('udp', 40, 41)
+    'udp-checksum': learningField('udp', 40, 41),
+    'icmp-type': learningField('icmp', 34, 34),
+    'icmp-code': learningField('icmp', 35, 35),
+    'icmp-checksum': learningField('icmp', 36, 37),
+    'icmp-id': learningField('icmp', 38, 39),
+    'icmp-seq': learningField('icmp', 40, 41)
   });
 
-  return Object.freeze({ version: '1.1.0', frames, lessons, learningHeaders, learningFields });
+  return Object.freeze({ version: '1.2.0', frames, lessons, learningHeaders, learningFields });
 });

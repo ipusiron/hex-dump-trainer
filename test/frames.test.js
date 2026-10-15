@@ -21,11 +21,11 @@ function checksum(bytes) {
   return (~sum) & 0xffff;
 }
 
-test('all frames have valid Ethernet II, IPv4, and UDP structures', () => {
-  assert.equal(data.version, '1.1.0');
-  for (const [id, frame] of Object.entries(data.frames)) {
+test('original UDP frames retain valid Ethernet II, IPv4, and UDP structures', () => {
+  assert.equal(data.version, '1.2.0');
+  for (const [id, e] of Object.entries(expected)) {
+    const frame = data.frames[id];
     const bytes = Buffer.from(frame.hex.replace(/\s+/g, ''), 'hex');
-    const e = expected[id];
     assert.equal(frame.version, '1.0.0', id);
     assert.equal(bytes.length, e.length, id);
     assert.ok(bytes.length >= 60, `${id}: no Ethernet padding needed`);
@@ -53,5 +53,36 @@ test('all frames have valid Ethernet II, IPv4, and UDP structures', () => {
     const documentationPrefixes = ['192.0.2', '198.51.100', '203.0.113'];
     assert.ok(documentationPrefixes.includes(Array.from(source.subarray(0, 3)).join('.')), id);
     assert.ok(documentationPrefixes.includes(Array.from(destination.subarray(0, 3)).join('.')), id);
+  }
+});
+
+test('Echo Request and Reply have independent exact values and valid checksums', () => {
+  const expectedEcho = {
+    echoRequest: { ipId: 0x5101, ttl: 64, ipChecksum: 0xfd7b, type: 8, icmpChecksum: 0xa28c,
+      source: '192.0.2.10', destination: '198.51.100.20' },
+    echoReply: { ipId: 0x6202, ttl: 56, ipChecksum: 0xf47a, type: 0, icmpChecksum: 0xaa8c,
+      source: '198.51.100.20', destination: '192.0.2.10' }
+  };
+  for (const [id, value] of Object.entries(expectedEcho)) {
+    const bytes = Buffer.from(data.frames[id].hex.replace(/\s+/g, ''), 'hex');
+    assert.equal(bytes.length, 60, id);
+    assert.equal(bytes.readUInt16BE(12), 0x0800, id);
+    assert.equal(bytes[14], 0x45, id);
+    assert.equal(bytes.readUInt16BE(16), 46, id);
+    assert.equal(bytes.readUInt16BE(18), value.ipId, id);
+    assert.equal(bytes.readUInt16BE(20), 0x4000, id);
+    assert.equal(bytes[22], value.ttl, id);
+    assert.equal(bytes[23], 1, id);
+    assert.equal(bytes.readUInt16BE(24), value.ipChecksum, id);
+    assert.equal(checksum(bytes.subarray(14, 34)), 0, id);
+    assert.equal(bytes[34], value.type, id);
+    assert.equal(bytes[35], 0, id);
+    assert.equal(bytes.readUInt16BE(36), value.icmpChecksum, id);
+    assert.equal(checksum(bytes.subarray(34, 60)), 0, id);
+    assert.equal(bytes.readUInt16BE(38), 0x1234, id);
+    assert.equal(bytes.readUInt16BE(40), 1, id);
+    assert.equal([...bytes.subarray(26, 30)].join('.'), value.source, id);
+    assert.equal([...bytes.subarray(30, 34)].join('.'), value.destination, id);
+    assert.equal(bytes.subarray(42).toString('ascii'), 'PING-LESSON-000001', id);
   }
 });
