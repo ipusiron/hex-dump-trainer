@@ -8,8 +8,8 @@ title: "Hex Dump Trainer"
 subtitle_ja: "16進ダンプを自分で読む演習"
 subtitle_en: "Learn to Read Hex Dumps"
 
-description_ja: "16進ダンプのバイト位置を探し、Ethernet IIとIPv4のヘッダーを読み解く初学者向け演習ツール"
-description_en: "Beginner-friendly exercises for locating bytes in hex dumps and reading Ethernet II and IPv4 headers"
+description_ja: "16進ダンプのバイト位置を探し、Ethernet II・IPv4・UDPのヘッダーを読み解く初学者向け演習ツール"
+description_en: "Beginner-friendly exercises for locating bytes in hex dumps and reading Ethernet II, IPv4, and UDP headers"
 
 category_ja:
   - ネットワーク
@@ -44,7 +44,7 @@ hub: false
 
 **Day114 - 生成AIで作るセキュリティツール200**
 
-Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Ethernet IIとIPv4のヘッダーを自分で読み解く演習ツールです。
+Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Ethernet II・IPv4・UDPのヘッダーを自分で読み解く演習ツールです。
 16進ダンプを初めて見る人は、短い導入練習から始められます。
 書籍がなくても使えます。
 「学習」タブでは、内蔵フレームの値を入れたパケット図、16進ダンプ、オフセットの説明を使い、Ethernet II、IPv4、UDPの読み方と関連RFCを確認できます。図、解説行、元のバイトはフィールドごとに連動して強調できます。
@@ -57,9 +57,13 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 ## 📸 スクリーンショット
 
-![入門問題、16進ダンプ、教材一覧を表示した画面](assets/screenshot-desktop.png)
+![入門問題、16進ダンプ、拡張後の教材一覧を表示した画面](assets/screenshot-desktop-20261015.png)
 
 ![IPv4の図、解説行、元の16進バイトとVersionの上位4ビットを示す学習タブ](assets/screenshot-learning-20261015.png)
+
+![比較元Aと回答対象Bの16進ダンプを並べて読む演習](assets/screenshot-comparison-20261015.png)
+
+![スマートフォンでAとBのダンプを縦に表示し、それぞれ横スクロールできる画面](assets/screenshot-comparison-mobile-20261015.png)
 
 ## ✨ 学べること
 
@@ -70,7 +74,9 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 - Ethernet IIの宛先MACアドレス、送信元MACアドレス、EtherType
 - IPv4のVersion、IHL、Total Length、TTL、Protocol、送信元アドレス、宛先アドレス
 - IHLからのIPv4ヘッダー長の計算
-- 学習タブでのUDPヘッダーの位置、ポート、Length、Checksumの読み方（UDPは採点対象外）
+- EtherType・IHL・Protocolを根拠にしたヘッダー境界の選択
+- UDPヘッダーの位置、ポート、Length、Checksumフィールドの読み方と演習
+- 2つのフレームを比較した最初の差分、TTL、IPv4ヘッダーチェックサムの読み取り
 
 ## 📖 使い方
 
@@ -79,6 +85,8 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 3. 位置問題では開始と終了のバイトを順に選びます。小さい画面やキーボード操作では、10進数のオフセット入力も使えます。
 4. 値問題と計算問題では、問題文で指定された表記の答えを入力します。
 5. 「答え合わせ」で確認します。誤答なら再挑戦でき、ヒントは対象ヘッダー→相対位置→解答表示の3段階です。「答えを見る」でも解答を表示できます。
+
+「ヘッダー境界」ではIPv4全体とUDPの開始位置を特定します。「UDP」ではポートやLengthなどを読みます。「2パケット比較」ではAとBを先頭から照合し、最初の差分の位置とBの値を答えます。比較中、正答前に差分は強調されません。
 
 日英を切り替えても、開いているタブ、表示中の問題、選択範囲、入力値、結果は保持されます。教材の切り替え時は、その教材の問題が未回答状態から始まり、完了記録は残ります。
 
@@ -102,7 +110,7 @@ IPv4教材のTotal Lengthは、フレーム先頭からの絶対オフセット`
 
 教材はオプションなしのIPv4を含むEthernet IIフレームに限定します。
 教材のバイト列にフレームチェックシーケンス（FCS）は含めません。
-後続データは長さとチェックサムが整合したUDPデータグラムです。学習タブでその構造を説明しますが、UDPのフィールドは採点しません。
+後続データは長さとチェックサムが整合したUDPデータグラムです。UDPのフィールド値は採点しますが、チェックサムの再計算は求めません。
 VLAN、IPv6、ARP、IPフラグメント、IPv4オプション、自分の16進ダンプの貼り付け、ICMPv4、pcap/pcapngの読込には対応しません。
 
 ## 🔒 データとプライバシー
@@ -111,7 +119,7 @@ VLAN、IPv6、ARP、IPフラグメント、IPv4オプション、自分の16進�
 
 ## 🧪 開発と検証
 
-HTML/CSS/JavaScriptのみで動作し、依存パッケージはありません。Node.js 22で次を実行すると、採点、全21問、4つの教材フレームのIPv4/UDP長とチェックサムを検証できます。
+HTML/CSS/JavaScriptのみで動作し、依存パッケージはありません。Node.js 22で次を実行すると、採点、全32問、5つの教材フレームのIPv4/UDP長とチェックサムを検証できます。
 
 ```sh
 node --test test/*.test.js
@@ -125,8 +133,10 @@ CIでも同じテストとJavaScript構文検査を実行します。画面は�
 hex-dump-trainer/
 ├── .github/workflows/test.yml # テストCI
 ├── .gitignore               # ローカルの機密ファイルなどを除外
-├── assets/screenshot-desktop.png # 画面例
+├── assets/screenshot-desktop-20261015.png # 画面例
 ├── assets/screenshot-learning-20261015.png # 学習タブの画面例
+├── assets/screenshot-comparison-20261015.png # 2パケット比較の画面例
+├── assets/screenshot-comparison-mobile-20261015.png # 比較画面のモバイル例
 ├── index.html               # 演習と学習の画面
 ├── style.css                # モバイル優先のスタイル
 ├── app.js                   # 画面、タブ、進捗

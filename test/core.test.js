@@ -64,7 +64,7 @@ test('value grading checks the complete requested notation', () => {
     { value: '20 bytes' }).valid, false);
 });
 
-test('all 21 questions have unique IDs and valid byte-derived answers', () => {
+test('all 32 questions have unique IDs and valid byte-derived answers', () => {
   const ids = new Set();
   let count = 0;
   for (const lesson of data.lessons) {
@@ -72,14 +72,57 @@ test('all 21 questions have unique IDs and valid byte-derived answers', () => {
     for (const question of lesson.questions) {
       assert.equal(ids.has(question.id), false);
       ids.add(question.id);
-      const answer = core.answerFor(question, data.frames[lesson.frameId]);
+      const comparison = lesson.compareFrameId ? data.frames[lesson.compareFrameId] : null;
+      const answer = core.answerFor(question, data.frames[lesson.frameId], comparison);
       assert.ok(answer.end < core.parseHex(data.frames[lesson.frameId].hex).length);
       const response = question.kind === 'range'
         ? { start: String(answer.start), end: String(answer.end) }
         : { value: answer.value };
-      assert.equal(core.grade(question, data.frames[lesson.frameId], response).ok, true);
+      assert.equal(core.grade(question, data.frames[lesson.frameId], response, comparison).ok, true);
       count += 1;
     }
   }
-  assert.equal(count, 21);
+  assert.equal(count, 32);
+});
+
+test('header boundaries and UDP answers come from bytes, including a longer IHL', () => {
+  const frame = data.frames.mixed;
+  const cases = [
+    ['ipv4Start', 14, 14, '14'],
+    ['ipv4Header', 14, 33, '20'],
+    ['udpStart', 34, 34, '34'],
+    ['udpHeader', 34, 41, '8'],
+    ['udpSourcePort', 34, 35, '12345'],
+    ['udpDestinationPort', 36, 37, '65000'],
+    ['udpLength', 38, 39, '29'],
+    ['udpChecksum', 40, 41, '0xC08F']
+  ];
+  for (const [field, start, end, value] of cases) {
+    const answer = core.answerFor({ field }, frame);
+    assert.deepEqual([answer.start, answer.end, answer.value], [start, end, value], field);
+  }
+  const longer = frame.hex.split(' ');
+  longer[14] = '46';
+  longer[17] = '35';
+  longer.splice(34, 0, '01', '02', '03', '04');
+  const changed = { hex: longer.join(' ') };
+  assert.deepEqual(core.packetLayout(core.parseHex(changed.hex)),
+    { ipv4Start: 14, ipv4Length: 24, udpStart: 38 });
+  assert.deepEqual([core.answerFor({ field: 'ipv4Header' }, changed).end,
+    core.answerFor({ field: 'udpStart' }, changed).start,
+    core.answerFor({ field: 'udpSourcePort' }, changed).start], [37, 38, 38]);
+  longer[12] = '86';
+  assert.throws(() => core.answerFor({ field: 'udpStart' }, { hex: longer.join(' ') }), /Ethernet II/);
+});
+
+test('comparison frame changes TTL and IPv4 checksum but not UDP', () => {
+  const before = core.parseHex(data.frames.mixed.hex);
+  const after = core.parseHex(data.frames.compare.hex);
+  assert.deepEqual(Array.from(after.keys()).filter(i => after[i] !== before[i]), [22, 24]);
+  assert.equal(core.answerFor({ field: 'firstChangedByte' }, data.frames.compare, data.frames.mixed).value, '22');
+  assert.equal(core.grade({ kind: 'compare', field: 'firstChangedByte' }, data.frames.compare,
+    { value: '22' }, data.frames.mixed).ok, true);
+  assert.equal(core.grade({ kind: 'compare', field: 'ttl' }, data.frames.compare, { value: '95' }).ok, true);
+  assert.equal(core.grade({ kind: 'compare', field: 'ipChecksum' }, data.frames.compare, { value: '0xDC76' }).ok, true);
+  assert.equal(core.grade({ kind: 'compare', field: 'ttl' }, data.frames.compare, { value: '96' }).ok, false);
 });
