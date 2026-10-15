@@ -28,7 +28,7 @@ tags:
 repo_url: "https://github.com/ipusiron/hex-dump-trainer"
 demo_url: "https://ipusiron.github.io/hex-dump-trainer/"
 
-hub: false
+hub: true
 ---
 -->
 
