@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#102238">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'; connect-src 'none'">
   <title>Hex Dump Trainer | Day114</title>
-  <meta name="description" content="Learn to read Ethernet II and IPv4 headers from hex dumps, byte by byte.">
+  <meta name="description" content="Practice reading hex dumps and inspect your own Ethernet II, IPv4, and UDP frame locally.">
   <link rel="stylesheet" href="style.css">
   <script src="core.js" defer></script>
   <script src="data.js" defer></script>
@@ -28,6 +28,7 @@
     <nav class="main-tabs" role="tablist" aria-label="表示を選択">
       <button id="practice-tab" class="main-tab" type="button" role="tab" aria-controls="practice-panel" aria-selected="true" tabindex="0">演習</button>
       <button id="learn-tab" class="main-tab" type="button" role="tab" aria-controls="learn-panel" aria-selected="false" tabindex="-1">学習</button>
+      <button id="custom-tab" class="main-tab" type="button" role="tab" aria-controls="custom-panel" aria-selected="false" tabindex="-1">自由入力</button>
     </nav>
 
     <div id="practice-panel" role="tabpanel" aria-labelledby="practice-tab" tabindex="0">
@@ -103,6 +104,37 @@
     <p id="scope-note" class="scope-note"></p>
     <noscript><p>この演習にはJavaScriptが必要です。 / JavaScript is required for the exercises.</p></noscript>
     </div>
+
+    <section id="custom-panel" class="custom-panel panel" role="tabpanel" aria-labelledby="custom-tab" tabindex="0" hidden>
+      <h2 id="custom-title">自分の16進ダンプを読む</h2>
+      <p id="custom-intro"></p>
+      <form id="custom-form" class="custom-form" novalidate>
+        <label for="custom-format" id="custom-format-label">入力形式</label>
+        <select id="custom-format">
+          <option id="custom-raw-option" value="raw">生の16進バイト列</option>
+          <option id="custom-offset-option" value="offset">オフセット付き行</option>
+        </select>
+        <p id="custom-format-note" class="small-note"></p>
+        <label for="custom-input" id="custom-input-label">16進ダンプ</label>
+        <textarea id="custom-input" rows="8" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="custom-format-note custom-privacy"></textarea>
+        <div class="custom-actions">
+          <button id="custom-analyze" class="primary-button" type="submit">読み取る</button>
+          <button id="custom-clear" class="secondary-button" type="button">消去</button>
+        </div>
+      </form>
+      <p id="custom-error" class="feedback is-error" role="alert" hidden></p>
+      <section id="custom-results" class="custom-results" aria-labelledby="custom-result-title" hidden>
+        <h3 id="custom-result-title" tabindex="-1">読み取り結果</h3>
+        <p id="custom-summary"></p>
+        <ul id="custom-warnings" class="custom-warnings"></ul>
+        <h3 id="custom-dump-title">入力したバイト</h3>
+        <div id="custom-dump" class="dump custom-dump" role="region" tabindex="0" aria-labelledby="custom-dump-title"></div>
+        <p id="custom-selection" class="selection-preview" aria-live="polite"></p>
+        <h3 id="custom-fields-title">読み取れたフィールド</h3>
+        <div id="custom-fields" class="custom-fields" aria-labelledby="custom-fields-title"></div>
+      </section>
+      <p id="custom-privacy" class="small-note custom-privacy"></p>
+    </section>
 
     <section id="learn-panel" class="learning-panel" role="tabpanel" aria-labelledby="learn-tab" tabindex="0" hidden>
       <h2 id="learn-title">パケットの読み方</h2>

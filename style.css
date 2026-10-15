@@ -10,7 +10,7 @@ body {
   line-height: 1.6;
 }
 
-button, input {
+button, input, textarea, select {
   font: inherit;
 }
 
@@ -28,7 +28,8 @@ a {
   overflow-wrap: anywhere;
 }
 
-a:focus-visible, button:focus-visible, input:focus-visible, .dump:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible,
+select:focus-visible, .dump:focus-visible {
   outline: 3px solid #e38120;
   outline-offset: 3px;
 }
@@ -110,7 +111,9 @@ h1 {
 }
 
 .main-tab {
-  min-width: 7rem;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 9rem;
   min-height: 2.75rem;
   padding: 0.55rem 1rem;
   border: 1px solid #b8c9dd;
@@ -454,6 +457,123 @@ input {
   color: #40556d;
   font-size: 0.9rem;
   text-align: center;
+}
+
+.custom-panel {
+  max-width: 60rem;
+  margin: 1rem auto 0;
+  text-align: center;
+}
+
+.custom-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 48rem;
+  margin: 1rem auto;
+  text-align: left;
+}
+
+.custom-form label {
+  font-weight: 700;
+}
+
+.custom-form select, .custom-form textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem;
+  border: 1px solid #879bb3;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #17283c;
+}
+
+.custom-form textarea {
+  min-height: 10rem;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.9rem;
+}
+
+.custom-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.custom-results {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #d7e0ec;
+}
+
+.custom-results h3 {
+  margin: 1rem 0 0.5rem;
+}
+
+.custom-warnings {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 48rem;
+  margin: 0.75rem auto;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.custom-warnings:empty {
+  display: none;
+}
+
+.custom-warnings li {
+  padding: 0.6rem 0.75rem;
+  border-left: 4px solid #a86100;
+  border-radius: 0.3rem;
+  background: #fff2d9;
+}
+
+.custom-fields {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.custom-field {
+  display: grid;
+  gap: 0.15rem;
+  min-height: 3rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #b8c9dd;
+  border-radius: 0.55rem;
+  background: #f6f9fd;
+  color: #17283c;
+  text-align: left;
+}
+
+.custom-field strong {
+  color: #102238;
+}
+
+.custom-field code {
+  overflow-wrap: anywhere;
+}
+
+.custom-field.is-active {
+  border-color: #925a00;
+  background: #fff0c8;
+  box-shadow: inset 4px 0 #925a00;
+}
+
+.reference-byte.is-inspected {
+  border-color: #925a00;
+  background: #ffdc85;
+  box-shadow: inset 0 0 0 1px #925a00;
+}
+
+.custom-privacy {
+  margin: 1.5rem 0 0;
 }
 
 .learning-panel {
@@ -905,6 +1025,10 @@ input {
   }
 
   .range-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .custom-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

@@ -182,5 +182,136 @@
     return rows;
   }
 
-  return Object.freeze({ FIELDS, parseHex, byteHex, offsetHex, packetLayout, readField, answerFor, grade, dumpRows });
+  const MAX_INPUT_CHARS = 16384;
+  const MAX_FRAME_BYTES = 4096;
+
+  function inputError(code) {
+    const error = new Error(code);
+    error.code = code;
+    return error;
+  }
+
+  function parseDumpText(input, mode) {
+    if (typeof input !== 'string') throw inputError('empty');
+    if (input.length > MAX_INPUT_CHARS) throw inputError('textTooLong');
+    if (!input.trim()) throw inputError('empty');
+    if (mode !== 'raw' && mode !== 'offset') throw inputError('unknownMode');
+    let bytes;
+    if (mode === 'raw') {
+      try { bytes = parseHex(input); } catch { throw inputError('invalidRaw'); }
+    } else {
+      const values = [];
+      for (const line of input.trim().split(/\r\n|\n|\r/)) {
+        const match = /^([0-9a-fA-F]{4,8}):[ \t]+(.+)$/.exec(line.trim());
+        if (!match) throw inputError('invalidOffsetRow');
+        const octets = match[2].trim().split(/[ \t]+/);
+        if (octets.length < 1 || octets.length > 16 || octets.some(octet => !/^[0-9a-fA-F]{2}$/.test(octet))) {
+          throw inputError('invalidOffsetRow');
+        }
+        if (Number.parseInt(match[1], 16) !== values.length) throw inputError('offsetGap');
+        for (const octet of octets) values.push(Number.parseInt(octet, 16));
+        if (values.length > MAX_FRAME_BYTES) throw inputError('tooManyBytes');
+      }
+      bytes = Uint8Array.from(values);
+    }
+    if (bytes.length > MAX_FRAME_BYTES) throw inputError('tooManyBytes');
+    return bytes;
+  }
+
+  function inspectPacket(bytes) {
+    if (!(bytes instanceof Uint8Array) || bytes.length < 1 || bytes.length > MAX_FRAME_BYTES) {
+      throw new RangeError('Invalid frame bytes');
+    }
+    const fields = [];
+    const warnings = [];
+    const add = (key, header, start, end, format, value) => {
+      if (end >= bytes.length) return false;
+      const raw = bytes.slice(start, end + 1);
+      let readValue = value;
+      if (readValue === undefined) {
+        readValue = format === 'mac' ? Array.from(raw, byteHex).join(':')
+          : format === 'ip' ? Array.from(raw).join('.')
+            : format === 'hex' ? '0x' + Array.from(raw, byteHex).join('')
+              : String(readNumber(raw));
+      }
+      fields.push({ key, header, start, end, rawHex: Array.from(raw, byteHex).join(' '), value: String(readValue) });
+      return true;
+    };
+    const warn = (code, value) => warnings.push({ code, value });
+    add('destinationMac', 'ethernet', 0, 5, 'mac');
+    add('sourceMac', 'ethernet', 6, 11, 'mac');
+    if (!add('etherType', 'ethernet', 12, 13, 'hex')) {
+      warn('ethernetTruncated');
+      return { fields, warnings };
+    }
+    const etherType = readNumber(bytes.slice(12, 14));
+    if (etherType !== 0x0800) {
+      warn('nonIpv4', '0x' + etherType.toString(16).padStart(4, '0').toUpperCase());
+      return { fields, warnings };
+    }
+    if (bytes.length < 15) {
+      warn('ipv4Truncated');
+      return { fields, warnings };
+    }
+    const version = bytes[14] >>> 4;
+    const ihl = bytes[14] & 0x0f;
+    add('version', 'ipv4', 14, 14, 'decimal', version);
+    add('ihl', 'ipv4', 14, 14, 'decimal', ihl);
+    if (version !== 4) {
+      warn('unsupportedIpVersion', version);
+      return { fields, warnings };
+    }
+    if (ihl < 5) {
+      warn('invalidIhl', ihl);
+      return { fields, warnings };
+    }
+    const ipHeaderLength = ihl * 4;
+    add('headerLength', 'ipv4', 14, 14, 'decimal', ipHeaderLength);
+    add('totalLength', 'ipv4', 16, 17, 'decimal');
+    add('ttl', 'ipv4', 22, 22, 'decimal');
+    add('protocol', 'ipv4', 23, 23, 'decimal');
+    add('ipChecksum', 'ipv4', 24, 25, 'hex');
+    add('sourceIp', 'ipv4', 26, 29, 'ip');
+    add('destinationIp', 'ipv4', 30, 33, 'ip');
+    if (bytes.length < 14 + ipHeaderLength) {
+      warn('ipv4Truncated');
+      return { fields, warnings };
+    }
+    if (ihl > 5) add('ipOptions', 'ipv4', 34, 14 + ipHeaderLength - 1, 'hex');
+    const ipTotalLength = readNumber(bytes.slice(16, 18));
+    if (ipTotalLength < ipHeaderLength) {
+      warn('invalidIpLength', ipTotalLength);
+      return { fields, warnings };
+    }
+    const ipEnd = 14 + ipTotalLength;
+    if (ipEnd > bytes.length) warn('ipv4DeclaredTruncated', ipEnd - bytes.length);
+    if (ipEnd < bytes.length) warn('trailingBytes', bytes.length - ipEnd);
+    const flagsFragment = readNumber(bytes.slice(20, 22));
+    if ((flagsFragment & 0x3fff) !== 0) {
+      warn('fragmented');
+      return { fields, warnings };
+    }
+    const protocol = bytes[23];
+    if (protocol !== 17) {
+      warn('nonUdp', protocol);
+      return { fields, warnings };
+    }
+    const udpStart = 14 + ipHeaderLength;
+    if (udpStart + 8 > Math.min(bytes.length, ipEnd)) {
+      warn('udpTruncated');
+      return { fields, warnings };
+    }
+    add('udpSourcePort', 'udp', udpStart, udpStart + 1, 'decimal');
+    add('udpDestinationPort', 'udp', udpStart + 2, udpStart + 3, 'decimal');
+    add('udpLength', 'udp', udpStart + 4, udpStart + 5, 'decimal');
+    add('udpChecksum', 'udp', udpStart + 6, udpStart + 7, 'hex');
+    const udpLength = readNumber(bytes.slice(udpStart + 4, udpStart + 6));
+    if (udpLength < 8) warn('invalidUdpLength', udpLength);
+    else if (udpLength !== ipTotalLength - ipHeaderLength) warn('udpLengthMismatch', udpLength);
+    else if (udpStart + udpLength > bytes.length) warn('udpDataTruncated', udpStart + udpLength - bytes.length);
+    return { fields, warnings };
+  }
+
+  return Object.freeze({ FIELDS, MAX_INPUT_CHARS, MAX_FRAME_BYTES, parseHex, parseDumpText, inspectPacket,
+    byteHex, offsetHex, packetLayout, readField, answerFor, grade, dumpRows });
 });

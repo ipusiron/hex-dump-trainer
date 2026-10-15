@@ -20,6 +20,7 @@ The Learn tab uses packet diagrams, hex bytes from a built-in frame, offset expl
 👉 **[Open Hex Dump Trainer](https://ipusiron.github.io/hex-dump-trainer/)**
 
 The exercises run in a browser and use original frames; no book is required.
+The Your dump tab also lets you paste your own hex text and match readable fields to their original bytes locally.
 
 ## 📸 Screenshot
 
@@ -30,6 +31,10 @@ The exercises run in a browser and use original frames; no book is required.
 ![The two-packet exercise with reference frame A and answer frame B](assets/screenshot-comparison-20261015.png)
 
 ![The mobile layout stacks frames A and B, each with its own horizontal scroll](assets/screenshot-comparison-mobile-20261015.png)
+
+![The Your dump tab linking fields to original bytes](assets/screenshot-free-input-1280.png)
+
+![The inspection result on a narrow screen](assets/screenshot-free-input-390.png)
 
 ## ✨ What you will learn
 
@@ -43,6 +48,7 @@ The exercises run in a browser and use original frames; no book is required.
 - How to locate header boundaries from EtherType, IHL, and Protocol
 - How to locate and read UDP ports, Length, and the Checksum field in graded exercises
 - How to compare two frames to find the first changed byte, TTL, and IPv4 header checksum
+- How to match fields in your own hex dump to their original bytes
 
 ## 📖 How to use
 
@@ -51,10 +57,13 @@ The exercises run in a browser and use original frames; no book is required.
 3. For range questions, select the start and end bytes. Decimal offset inputs provide an alternative for small screens and keyboards.
 4. For value and calculation questions, enter the notation requested in the question.
 5. Check your answer. You can retry after a wrong answer. Hints progress through header, relative offset, and answer reveal; Show answer reveals it directly.
+6. In Your dump, choose an input format, paste one frame of hex text, and press Inspect. Select a field to highlight its bytes. This tab does not grade input.
 
 Header boundaries asks you to identify the IPv4 range and UDP start. UDP asks for ports, Length, and the Checksum field. Compare two packets shows frames A and B; compare them from the start to find the first difference and read values from B. Differences are not highlighted before grading.
 
 Changing languages preserves the active tab, current question, selection, input, and result. Switching lessons starts the selected lesson unanswered while keeping its completion record.
+
+Your dump accepts raw hexadecimal with optional whitespace (for example, `02 FE DC BA 98 76`) or contiguous offset-labelled rows (for example, `0000: 02 FE DC BA 98 76`). Offset rows begin at `0000` and contain 1–16 bytes each. Input is limited to 16,384 text characters and 4,096 decoded bytes per frame. `0x` notation, ASCII columns, and pcap/pcapng files are not accepted.
 
 ## 🔧 Getting started
 
@@ -76,21 +85,23 @@ The bytes are `00 30`. Read in network byte order, they form `0x0030`, or `48` b
 
 The lessons use Ethernet II frames containing IPv4 headers without options. The sample byte arrays omit the frame check sequence (FCS).
 Their UDP datagrams have consistent lengths and checksums. UDP field values are graded, but checksum recalculation is not required.
-VLAN, IPv6, ARP, fragmentation, IPv4 options, pasted hex dumps, ICMPv4, and pcap/pcapng import are not supported.
+Your dump displays only complete, readable Ethernet II, IPv4, and UDP fields. IPv4 options are shown as a byte range, and IHL moves the UDP start. Truncated input, inconsistent lengths, and unsupported EtherTypes or Protocol values produce warnings. Fragments are not reassembled, and checksum validity is not checked.
+VLAN, IPv6, ARP, TCP, ICMPv4, and pcap/pcapng import are not supported.
 
 ## 🔒 Data and privacy
 
-Only original built-in exercises are used; there is no free-form input. Answers and progress stay in the page's memory and disappear on reload. The app does not submit answers externally. Following a GitHub link navigates to GitHub.
+Answers, progress, and your pasted text and result stay in page memory and disappear on reload. The app does not put your input in the URL or send input or answers elsewhere. Take care with dumps containing confidential data. Following a GitHub link navigates to GitHub.
 
 ## 🧪 Development and tests
 
-The app uses only HTML, CSS, and JavaScript, with no package dependencies. With Node.js 22, run the byte-reading, grading, all-question, and five-frame IPv4/UDP length and checksum tests (32 questions):
+The app uses only HTML, CSS, and JavaScript, with no package dependencies. With Node.js 22, run the byte-reading, grading, all-question, five-frame IPv4/UDP length and checksum, and free-input parsing tests (32 questions):
 
 ```sh
 node --test test/*.test.js
 ```
 
 CI runs the same tests and JavaScript syntax checks. The interface has been checked locally with `file://` and HTTP at widths from 320 to 1280 pixels.
+If Chrome is installed locally, run `node test/browser_qa.mjs "<Chrome executable>"` to test `file://` input interactions and 320, 390, 768, and 1280px layouts. An HTTP(S) URL may be passed as the second argument. This optional test saves Your dump screenshots under `assets/`.
 
 ## 📁 Directory structure
 
@@ -102,10 +113,11 @@ hex-dump-trainer/
 ├── assets/screenshot-learning-20261015.png # Learn tab screenshot
 ├── assets/screenshot-comparison-20261015.png # Two-packet comparison screenshot
 ├── assets/screenshot-comparison-mobile-20261015.png # Mobile comparison screenshot
-├── index.html               # Exercise and learning interface
+├── assets/screenshot-free-input-{390,1280}.png # Your dump screenshots
+├── index.html               # Exercise, learning, and input interface
 ├── style.css                # Mobile-first styles
 ├── app.js                   # Interface, tabs, and progress
-├── core.js                  # Byte reading and grading
+├── core.js                  # Byte reading, grading, and input inspection
 ├── data.js                  # Versioned original lessons
 ├── test/                    # Dependency-free tests
 ├── README.md                # Japanese
