@@ -7,7 +7,6 @@
   'use strict';
 
   // Versioned, original teaching frames. Each is Ethernet II + IPv4 + UDP.
-  // UDP is structurally valid but is not graded in the first release.
   const frames = Object.freeze({
     intro: {
       id: 'intro', version: '1.0.0',
@@ -24,6 +23,11 @@
     mixed: {
       id: 'mixed', version: '1.0.0',
       hex: '02 de ad be ef 14 02 01 23 45 67 89 08 00 45 00 00 31 40 04 40 00 60 11 db 76 c0 00 02 78 cb 00 71 c8 30 39 fd e8 00 1d c0 8f 4d 49 58 45 44 2d 46 49 45 4c 44 53 2d 4c 45 53 53 4f 4e 2d 44'
+    },
+    compare: {
+      id: 'compare', version: '1.0.0',
+      // The mixed frame after one IPv4 hop: TTL -1, IPv4 checksum updated.
+      hex: '02 de ad be ef 14 02 01 23 45 67 89 08 00 45 00 00 31 40 04 40 00 5f 11 dc 76 c0 00 02 78 cb 00 71 c8 30 39 fd e8 00 1d c0 8f 4d 49 58 45 44 2d 46 49 45 4c 44 53 2d 4c 45 53 53 4f 4e 2d 44'
     }
   });
 
@@ -72,6 +76,32 @@
       ]
     },
     {
+      id: 'boundaries', frameId: 'mixed', title: { ja: 'ヘッダー境界', en: 'Header boundaries' },
+      questions: [
+        { id: 'boundary-ip-start', kind: 'range', field: 'ipv4Start',
+          prompt: { ja: 'EtherTypeが示すIPv4ヘッダーの開始バイトを選んでください。', en: 'Select the first byte of the IPv4 header indicated by EtherType.' } },
+        { id: 'boundary-ip-header', kind: 'range', field: 'ipv4Header',
+          prompt: { ja: 'IHLから長さを求め、IPv4ヘッダー全体の範囲を選んでください。', en: 'Use IHL to select the entire IPv4 header range.' } },
+        { id: 'boundary-udp-start', kind: 'range', field: 'udpStart',
+          prompt: { ja: 'ProtocolがUDPを示すことを確認し、UDPヘッダーの開始バイトを選んでください。', en: 'Confirm that Protocol indicates UDP, then select the first UDP header byte.' } }
+      ]
+    },
+    {
+      id: 'udp', frameId: 'mixed', title: { ja: 'UDP', en: 'UDP' },
+      questions: [
+        { id: 'udp-header-range', kind: 'range', field: 'udpHeader',
+          prompt: { ja: 'UDPヘッダー8バイトの範囲を選んでください。', en: 'Select the eight-byte UDP header range.' } },
+        { id: 'udp-source-port', kind: 'value', field: 'udpSourcePort', format: 'decimal',
+          prompt: { ja: 'UDPの送信元ポート番号を10進数で入力してください。', en: 'Enter the UDP source port in decimal.' } },
+        { id: 'udp-destination-port', kind: 'value', field: 'udpDestinationPort', format: 'decimal',
+          prompt: { ja: 'UDPの宛先ポート番号を10進数で入力してください。', en: 'Enter the UDP destination port in decimal.' } },
+        { id: 'udp-length', kind: 'value', field: 'udpLength', format: 'decimal',
+          prompt: { ja: 'UDPのLengthを、ヘッダーを含むバイト数として10進数で入力してください。', en: 'Enter UDP Length in decimal, including the UDP header.' } },
+        { id: 'udp-checksum', kind: 'value', field: 'udpChecksum', format: 'hex',
+          prompt: { ja: 'UDPのChecksumフィールドを0x付き4桁の16進数で入力してください（再計算は不要）。', en: 'Enter the UDP Checksum field as four hex digits with 0x (no recalculation).' } }
+      ]
+    },
+    {
       id: 'mixed', frameId: 'mixed', title: { ja: '混合問題', en: 'Mixed practice' },
       questions: [
         { id: 'mix-src-mac-range', kind: 'range', field: 'sourceMac',
@@ -88,6 +118,17 @@
           prompt: { ja: '宛先IPv4アドレスの範囲を選んでください。', en: 'Select the range of the destination IPv4 address.' } },
         { id: 'mix-dst-ip-value', kind: 'value', field: 'destinationIp', format: 'ip',
           prompt: { ja: '宛先IPv4アドレスを入力してください。', en: 'Enter the destination IPv4 address.' } }
+      ]
+    },
+    {
+      id: 'comparison', frameId: 'compare', compareFrameId: 'mixed', title: { ja: '2パケット比較', en: 'Compare two packets' },
+      questions: [
+        { id: 'compare-first-offset', kind: 'compare', field: 'firstChangedByte', format: 'decimal',
+          prompt: { ja: 'AとBを先頭から比べ、最初に値が異なるバイトのオフセットを10進数で入力してください。', en: 'Compare A and B from the start. Enter the offset of the first different byte in decimal.' } },
+        { id: 'compare-ttl', kind: 'compare', field: 'ttl', format: 'decimal',
+          prompt: { ja: 'AとBを比べ、BのTTLを10進数で入力してください。', en: 'Compare A and B, then enter B\'s TTL in decimal.' } },
+        { id: 'compare-checksum', kind: 'compare', field: 'ipChecksum', format: 'hex',
+          prompt: { ja: 'AとBを比べ、BのIPv4ヘッダーチェックサムを0x付き4桁の16進数で入力してください。', en: 'Compare A and B, then enter B\'s IPv4 header checksum as four hex digits with 0x.' } }
       ]
     }
   ]);
@@ -122,5 +163,5 @@
     'udp-checksum': learningField('udp', 40, 41)
   });
 
-  return Object.freeze({ version: '1.0.0', frames, lessons, learningHeaders, learningFields });
+  return Object.freeze({ version: '1.1.0', frames, lessons, learningHeaders, learningFields });
 });

@@ -56,6 +56,12 @@
           <h3 id="dump-title">16進ダンプ</h3>
           <p id="dump-note" class="small-note"></p>
         </div>
+        <div id="comparison-reference" class="comparison-reference" hidden>
+          <h4 id="comparison-title">A：比較元</h4>
+          <p id="comparison-note" class="small-note"></p>
+          <div id="dump-a" class="dump reference-dump" role="region" tabindex="0" aria-labelledby="comparison-title"></div>
+          <h4 id="comparison-target-title">B：比較先</h4>
+        </div>
         <div id="dump" class="dump" role="region" tabindex="0" aria-labelledby="dump-title"></div>
         <p id="selection-preview" class="selection-preview" aria-live="polite"></p>
 
@@ -118,7 +124,7 @@
             <li><code>34〜41</code><span>UDPヘッダー（8バイト）</span></li>
             <li><code>42〜61</code><span>UDPデータ（20バイト）</span></li>
           </ol>
-          <p class="small-note">この範囲は掲載例の値です。他の教材もヘッダーの開始位置は同じですが、データの長さは異なります。教材にVLANタグやIPv4オプションはなく、FCSもダンプに含めません。UDPフィールドは学習用に説明しますが、現行の演習では採点しません。</p>
+          <p class="small-note">この範囲は掲載例の値です。他の教材もヘッダーの開始位置は同じですが、データの長さは異なります。教材にVLANタグやIPv4オプションはなく、FCSもダンプに含めません。UDPフィールドは演習でも採点します。</p>
         </section>
         <article id="learn-ethernet-ja" class="panel learning-card" aria-labelledby="learn-ethernet-title-ja">
           <h3 id="learn-ethernet-title-ja">Ethernet II：次のヘッダーを見つける</h3>
@@ -194,7 +200,7 @@
             <div data-learn-field="udp-length"><dt><code>38〜39</code> Length</dt><dd><code>00 1C</code> → <code>28</code>バイト。UDPヘッダー8バイトとデータ20バイトを含みます。</dd></div>
             <div data-learn-field="udp-checksum"><dt><code>40〜41</code> Checksum</dt><dd><code>FD 29</code>。計算にはUDPだけでなく、IPv4の送信元アドレスと宛先アドレスなどを含む疑似ヘッダーも使います。</dd></div>
           </dl>
-          <p>データはオフセット42からです。ポート番号だけでアプリケーションの内容を断定しないでください。このツールはUDPのポートやチェックサムを採点しません。</p>
+          <p>データはオフセット42からです。ポート番号だけでアプリケーションの内容を断定しないでください。演習ではChecksumフィールドの値を読むだけで、再計算は求めません。</p>
           <p class="learning-reference">参照：<a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768（別タブ）</a>のFormatとFieldsで、4つのUDPフィールドとLengthの範囲、チェックサムの疑似ヘッダーを確認できます。</p>
         </article>
         <button class="primary-button back-to-practice" type="button" data-open-practice>演習へ戻る</button>
@@ -217,7 +223,7 @@
             <li><code>34–41</code><span>UDP header (8 bytes)</span></li>
             <li><code>42–61</code><span>UDP data (20 bytes)</span></li>
           </ol>
-          <p class="small-note">These ranges belong to this example. Other lessons share the header start positions but have different data lengths. The lessons contain no VLAN tag or IPv4 options, and the dump omits FCS. UDP fields are explained here but are not graded in the current exercises.</p>
+          <p class="small-note">These ranges belong to this example. Other lessons share the header start positions but have different data lengths. The lessons contain no VLAN tag or IPv4 options, and the dump omits FCS. UDP fields are also graded in Exercises.</p>
         </section>
         <article id="learn-ethernet-en" class="panel learning-card" aria-labelledby="learn-ethernet-title-en">
           <h3 id="learn-ethernet-title-en">Ethernet II: find the next header</h3>
@@ -293,7 +299,7 @@
             <div data-learn-field="udp-length"><dt><code>38–39</code> Length</dt><dd><code>00 1C</code> → <code>28</code> bytes, including the eight-byte UDP header and 20 data bytes.</dd></div>
             <div data-learn-field="udp-checksum"><dt><code>40–41</code> Checksum</dt><dd><code>FD 29</code>. Its calculation also uses a pseudo-header containing the IPv4 source and destination addresses, among other values.</dd></div>
           </dl>
-          <p>Data begins at offset 42. A port number alone does not establish the application content. This tool does not grade UDP ports or checksums.</p>
+          <p>Data begins at offset 42. A port number alone does not establish the application content. Exercises ask you to read the Checksum field, not recalculate it.</p>
           <p class="learning-reference">Reference: the Format and Fields sections of <a href="https://www.rfc-editor.org/rfc/rfc768.html" target="_blank" rel="noopener noreferrer">RFC 768 (new tab)</a> define the four UDP fields, the Length coverage, and the checksum pseudo-header.</p>
         </article>
         <button class="primary-button back-to-practice" type="button" data-open-practice>Return to exercises</button>

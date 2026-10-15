@@ -35,7 +35,11 @@
       question: '問題',
       dump: '16進ダンプ',
       dumpNote: 'オフセットはゼロ始まり。バイトを2回押して開始・終了を選択できます。横にスクロールできます。',
+      dumpValueNote: 'オフセットはゼロ始まり。必要なバイトを読んで答え欄に入力します。横にスクロールできます。',
       dumpAria: '16進ダンプ。各バイトは選択できるボタンです。',
+      comparisonTitle: 'A：比較元のフレーム',
+      comparisonTarget: 'B：回答するフレーム',
+      comparisonNote: 'AとBを見比べます。バイトの選択と回答はBで行います。正答前に差分は強調しません。',
       byteAria: (offset, hex) => `オフセット${offset}、16進値${hex}`,
       selectionEmpty: '選択範囲：未指定',
       selectionStart: start => `選択範囲：開始 ${start}、終了は未指定`,
@@ -64,7 +68,15 @@
       frame: 'フレーム',
       ethernet: 'Ethernet II',
       ipv4: 'IPv4',
-      scope: '教材は自作のEthernet II＋IPv4フレームです。FCSは含めず、UDPフィールドは採点しません。自由入力や外部送信はありません。',
+      udp: 'UDP',
+      scope: '教材は自作のEthernet II＋IPv4＋UDPフレームです。FCSは含めません。自由入力や外部送信はありません。',
+      boundaryIpStep: 'EtherType 0x0800はIPv4を示し、Ethernet IIヘッダー14バイトの直後からIPv4が始まります。',
+      boundaryLengthStep: length => `IHLからIPv4ヘッダー長は${length}バイトです。開始位置14から数えて範囲を決めます。`,
+      boundaryUdpStep: start => `Protocol 17はUDPを示します。IPv4ヘッダーの開始位置14にIHL × 4を加えると、UDPの開始位置${start}です。`,
+      udpHeaderStep: 'UDPヘッダーは送信元ポート、宛先ポート、Length、Checksumの各2バイト、計8バイトです。',
+      udpLengthStep: (raw, value) => `${raw}を10進数にすると${value}バイト。UDPヘッダー8バイトとデータを含みます。`,
+      compareStep: (before, after) => `Aは${before}、Bは${after}です。TTLが1減るとIPv4ヘッダーチェックサムも更新されます。`,
+      firstChangeStep: (before, after, offset) => `オフセット${offset}の値がAでは${before}、Bでは${after}です。先頭から照合すると、ここが最初の差分です。`,
       rangeStep: '開始と終了の両端を含む範囲です。',
       bytesStep: raw => `${raw}を順に読みます。`,
       macStep: raw => `${raw}の6バイトをコロンで区切ります。`,
@@ -106,7 +118,11 @@
       question: 'Question',
       dump: 'Hex dump',
       dumpNote: 'Offsets start at zero. Press two bytes to choose the inclusive start and end. Scroll sideways if needed.',
+      dumpValueNote: 'Offsets start at zero. Read the needed bytes and enter your answer. Scroll sideways if needed.',
       dumpAria: 'Hex dump. Each byte is a selectable button.',
+      comparisonTitle: 'A: reference frame',
+      comparisonTarget: 'B: frame to answer from',
+      comparisonNote: 'Compare A with B. Select bytes and submit answers from B. Differences are not highlighted before grading.',
       byteAria: (offset, hex) => `Offset ${offset}, hexadecimal value ${hex}`,
       selectionEmpty: 'Selection: none',
       selectionStart: start => `Selection: start ${start}, end not set`,
@@ -135,7 +151,15 @@
       frame: 'frame',
       ethernet: 'Ethernet II',
       ipv4: 'IPv4',
-      scope: 'Samples are original Ethernet II + IPv4 frames. FCS is omitted, UDP fields are not graded, and there is no free-form input or external submission.',
+      udp: 'UDP',
+      scope: 'Samples are original Ethernet II + IPv4 + UDP frames. FCS is omitted; there is no free-form input or external submission.',
+      boundaryIpStep: 'EtherType 0x0800 identifies IPv4, which begins after the 14-byte Ethernet II header.',
+      boundaryLengthStep: length => `IHL gives a ${length}-byte IPv4 header. Count from the header start at offset 14.`,
+      boundaryUdpStep: start => `Protocol 17 identifies UDP. Add IHL × 4 to the IPv4 start at 14 to find UDP at offset ${start}.`,
+      udpHeaderStep: 'The UDP header has four two-byte fields: source port, destination port, Length, and Checksum.',
+      udpLengthStep: (raw, value) => `${raw} is ${value} bytes in decimal, including the eight-byte UDP header and data.`,
+      compareStep: (before, after) => `A is ${before}; B is ${after}. When TTL decreases by one, the IPv4 header checksum is updated too.`,
+      firstChangeStep: (before, after, offset) => `At offset ${offset}, A has ${before} and B has ${after}. Comparing from the start, this is the first difference.`,
       rangeStep: 'The range includes both the start and end bytes.',
       bytesStep: raw => `Read the bytes ${raw} in order.`,
       macStep: raw => `Separate the six bytes ${raw} with colons.`,
@@ -332,7 +356,8 @@
   function lesson() { return data.lessons[state.lessonIndex]; }
   function question() { return lesson().questions[state.questionIndex]; }
   function frame() { return data.frames[lesson().frameId]; }
-  function answer() { return core.answerFor(question(), frame()); }
+  function comparisonFrame() { return lesson().compareFrameId ? data.frames[lesson().compareFrameId] : null; }
+  function answer() { return core.answerFor(question(), frame(), comparisonFrame()); }
   function setText(id, value) { element(id).textContent = value; }
 
   function renderTabs() {
@@ -401,7 +426,9 @@
     setText('lessons-title', t.lessons);
     setText('lesson-note', t.lessonNote);
     setText('dump-title', t.dump);
-    setText('dump-note', t.dumpNote);
+    setText('comparison-title', t.comparisonTitle);
+    setText('comparison-target-title', t.comparisonTarget);
+    setText('comparison-note', t.comparisonNote);
     element('dump').setAttribute('aria-label', t.dumpAria);
     setText('start-label', t.start);
     setText('end-label', t.end);
@@ -439,10 +466,9 @@
     element('lesson-list').replaceChildren(...buttons);
   }
 
-  function renderDump() {
+  function rowsForDump(bytes, interactive) {
     const t = words();
-    const bytes = core.parseHex(frame().hex);
-    const rows = core.dumpRows(bytes, 8).map(row => {
+    return core.dumpRows(bytes, 8).map(row => {
       const container = document.createElement('div');
       container.className = 'dump-row';
       const offset = document.createElement('span');
@@ -451,14 +477,16 @@
       const byteList = document.createElement('div');
       byteList.className = 'byte-list';
       for (const item of row.bytes) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'byte-button';
-        button.dataset.offset = String(item.offset);
-        button.textContent = item.hex;
-        button.setAttribute('aria-label', t.byteAria(item.offset, item.hex));
-        button.setAttribute('aria-pressed', 'false');
-        byteList.append(button);
+        const cell = document.createElement(interactive ? 'button' : 'span');
+        if (interactive) {
+          cell.type = 'button';
+          cell.dataset.offset = String(item.offset);
+          cell.setAttribute('aria-label', t.byteAria(item.offset, item.hex));
+          cell.setAttribute('aria-pressed', 'false');
+        }
+        cell.className = interactive ? 'byte-button' : 'reference-byte';
+        cell.textContent = item.hex;
+        byteList.append(cell);
       }
       const ascii = document.createElement('span');
       ascii.className = 'ascii-cell';
@@ -466,7 +494,15 @@
       container.append(offset, byteList, ascii);
       return container;
     });
-    element('dump').replaceChildren(...rows);
+  }
+
+  function renderDump() {
+    element('dump').replaceChildren(...rowsForDump(core.parseHex(frame().hex), true));
+    if (lesson().compareFrameId) {
+      element('dump-a').replaceChildren(...rowsForDump(core.parseHex(data.frames[lesson().compareFrameId].hex), false));
+    } else {
+      element('dump-a').replaceChildren();
+    }
     renderSelection();
   }
 
@@ -507,6 +543,19 @@
     const t = words();
     const field = question().field;
     const raw = result.rawHex;
+    if (lesson().compareFrameId && field === 'firstChangedByte') {
+      const beforeByte = core.byteHex(core.parseHex(comparisonFrame().hex)[result.start]);
+      return t.firstChangeStep(beforeByte, raw, result.start);
+    }
+    if (lesson().compareFrameId) {
+      const before = core.answerFor(question(), comparisonFrame());
+      return t.compareStep(before.value, result.value);
+    }
+    if (field === 'ipv4Start') return t.boundaryIpStep;
+    if (field === 'ipv4Header') return t.boundaryLengthStep(result.numericValue);
+    if (field === 'udpStart') return t.boundaryUdpStep(result.start);
+    if (field === 'udpHeader') return t.udpHeaderStep;
+    if (field === 'udpLength') return t.udpLengthStep(raw, result.value);
     if (field === 'version') return t.versionStep(raw, result.value);
     if (field === 'ihl') return t.ihlStep(raw, result.value);
     if (field === 'headerLength') return t.lengthStep(result.byteValue & 0x0f, result.value);
@@ -561,6 +610,9 @@
     setText('question-count', `${item.title[state.locale]} · ${t.question} ${state.questionIndex + 1}/${item.questions.length}`);
     setText('question-title', `${t.question} ${state.questionIndex + 1}`);
     setText('question-prompt', current.prompt[state.locale]);
+    setText('dump-note', current.kind === 'range' ? t.dumpNote : t.dumpValueNote);
+    element('comparison-reference').hidden = !item.compareFrameId;
+    element('dump').setAttribute('aria-labelledby', item.compareFrameId ? 'comparison-target-title' : 'dump-title');
     element('range-fields').hidden = current.kind !== 'range';
     element('value-field').hidden = current.kind === 'range';
     element('start-offset').value = state.start;
@@ -692,7 +744,7 @@
     if (state.outcome) return;
     const response = question().kind === 'range'
       ? { start: state.start, end: state.end } : { value: state.value };
-    const result = core.grade(question(), frame(), response);
+    const result = core.grade(question(), frame(), response, comparisonFrame());
     if (result.ok) {
       recordOutcome('correct');
     } else {

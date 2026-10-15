@@ -10,7 +10,7 @@
 
 **Day114 - Security Tools with Generative AI 200**
 
-Hex Dump Trainer is an interactive learning tool for finding byte positions in a hex dump and reading Ethernet II and IPv4 headers.
+Hex Dump Trainer is an interactive learning tool for finding byte positions in a hex dump and reading Ethernet II, IPv4, and UDP headers.
 If you are new to hex dumps, you can start with a short introduction.
 No book is required.
 The Learn tab uses packet diagrams, hex bytes from a built-in frame, offset explanations, and links to the relevant RFCs to explain Ethernet II, IPv4, and UDP. Matching diagram fields, explanation rows, and original bytes highlight together.
@@ -23,9 +23,13 @@ The exercises run in a browser and use original frames; no book is required.
 
 ## 📸 Screenshot
 
-![The introduction question, hex dump, and lesson list](assets/screenshot-desktop.png)
+![The introduction question, hex dump, and expanded lesson list](assets/screenshot-desktop-20261015.png)
 
 ![The Learn tab showing the linked IPv4 diagram, original hex byte, explanation row, and Version's upper four bits](assets/screenshot-learning-20261015.png)
+
+![The two-packet exercise with reference frame A and answer frame B](assets/screenshot-comparison-20261015.png)
+
+![The mobile layout stacks frames A and B, each with its own horizontal scroll](assets/screenshot-comparison-mobile-20261015.png)
 
 ## ✨ What you will learn
 
@@ -36,7 +40,9 @@ The exercises run in a browser and use original frames; no book is required.
 - How to locate Ethernet II destination and source MAC addresses and EtherType
 - How to read IPv4 Version, IHL, Total Length, TTL, Protocol, and source and destination addresses
 - How to calculate the IPv4 header length from IHL
-- How to locate and read UDP ports, Length, and Checksum in the Learn tab (UDP is not graded)
+- How to locate header boundaries from EtherType, IHL, and Protocol
+- How to locate and read UDP ports, Length, and the Checksum field in graded exercises
+- How to compare two frames to find the first changed byte, TTL, and IPv4 header checksum
 
 ## 📖 How to use
 
@@ -45,6 +51,8 @@ The exercises run in a browser and use original frames; no book is required.
 3. For range questions, select the start and end bytes. Decimal offset inputs provide an alternative for small screens and keyboards.
 4. For value and calculation questions, enter the notation requested in the question.
 5. Check your answer. You can retry after a wrong answer. Hints progress through header, relative offset, and answer reveal; Show answer reveals it directly.
+
+Header boundaries asks you to identify the IPv4 range and UDP start. UDP asks for ports, Length, and the Checksum field. Compare two packets shows frames A and B; compare them from the start to find the first difference and read values from B. Differences are not highlighted before grading.
 
 Changing languages preserves the active tab, current question, selection, input, and result. Switching lessons starts the selected lesson unanswered while keeping its completion record.
 
@@ -67,7 +75,7 @@ The bytes are `00 30`. Read in network byte order, they form `0x0030`, or `48` b
 ## ⚠️ Scope and limitations
 
 The lessons use Ethernet II frames containing IPv4 headers without options. The sample byte arrays omit the frame check sequence (FCS).
-Their UDP datagrams have consistent lengths and checksums. The Learn tab explains their structure, but UDP fields are not graded.
+Their UDP datagrams have consistent lengths and checksums. UDP field values are graded, but checksum recalculation is not required.
 VLAN, IPv6, ARP, fragmentation, IPv4 options, pasted hex dumps, ICMPv4, and pcap/pcapng import are not supported.
 
 ## 🔒 Data and privacy
@@ -76,7 +84,7 @@ Only original built-in exercises are used; there is no free-form input. Answers 
 
 ## 🧪 Development and tests
 
-The app uses only HTML, CSS, and JavaScript, with no package dependencies. With Node.js 22, run the byte-reading, grading, all-question, and four-frame IPv4/UDP length and checksum tests:
+The app uses only HTML, CSS, and JavaScript, with no package dependencies. With Node.js 22, run the byte-reading, grading, all-question, and five-frame IPv4/UDP length and checksum tests (32 questions):
 
 ```sh
 node --test test/*.test.js
@@ -90,8 +98,10 @@ CI runs the same tests and JavaScript syntax checks. The interface has been chec
 hex-dump-trainer/
 ├── .github/workflows/test.yml # Test CI
 ├── .gitignore               # Exclude local secrets and generated files
-├── assets/screenshot-desktop.png # Interface screenshot
+├── assets/screenshot-desktop-20261015.png # Interface screenshot
 ├── assets/screenshot-learning-20261015.png # Learn tab screenshot
+├── assets/screenshot-comparison-20261015.png # Two-packet comparison screenshot
+├── assets/screenshot-comparison-mobile-20261015.png # Mobile comparison screenshot
 ├── index.html               # Exercise and learning interface
 ├── style.css                # Mobile-first styles
 ├── app.js                   # Interface, tabs, and progress

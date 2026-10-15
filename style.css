@@ -218,6 +218,18 @@ h1 {
   margin-bottom: 0.25rem;
 }
 
+.comparison-reference {
+  margin: 1rem 0 0.75rem;
+}
+
+.comparison-reference h4 {
+  margin: 0.9rem 0 0.35rem;
+}
+
+.comparison-reference .small-note {
+  margin-bottom: 0.5rem;
+}
+
 .dump {
   width: fit-content;
   max-width: 100%;
@@ -232,10 +244,10 @@ h1 {
 
 .dump-row {
   display: grid;
-  grid-template-columns: 3.2rem minmax(0, 1fr);
-  align-items: start;
+  grid-template-columns: 3.2rem max-content 5rem;
+  align-items: center;
   gap: 0.55rem;
-  width: 100%;
+  width: max-content;
   margin-bottom: 0.4rem;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
@@ -251,7 +263,7 @@ h1 {
 
 .byte-list {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.15rem;
 }
 
@@ -264,6 +276,19 @@ h1 {
   background: #fff;
   color: #17283c;
   font-family: inherit;
+  font-weight: 700;
+}
+
+.reference-byte {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.35rem;
+  min-height: 2.5rem;
+  padding: 0.2rem;
+  border: 1px solid #bdcbd9;
+  border-radius: 0.3rem;
+  background: #fff;
+  color: #17283c;
   font-weight: 700;
 }
 
@@ -287,7 +312,7 @@ h1 {
 }
 
 .ascii-cell {
-  grid-column: 2;
+  grid-column: auto;
   white-space: pre;
   color: #40556d;
 }
@@ -892,19 +917,6 @@ input {
     gap: 1rem;
   }
 
-  .dump-row {
-    grid-template-columns: 3.2rem max-content 5rem;
-    align-items: center;
-    width: max-content;
-  }
-
-  .byte-list {
-    flex-wrap: nowrap;
-  }
-
-  .ascii-cell {
-    grid-column: auto;
-  }
 }
 
 @media (min-width: 60rem) {
