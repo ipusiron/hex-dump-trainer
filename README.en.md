@@ -25,7 +25,7 @@ The exercises run in a browser and use original frames; no book is required.
 
 ![The introduction question, hex dump, and lesson list](assets/screenshot-desktop.png)
 
-![The Learn tab showing the linked IPv4 diagram, original hex byte, explanation row, and Version's upper four bits](assets/screenshot-learning.png)
+![The Learn tab showing the linked IPv4 diagram, original hex byte, explanation row, and Version's upper four bits](assets/screenshot-learning-20261015.png)
 
 ## ✨ What you will learn
 
@@ -91,7 +91,7 @@ hex-dump-trainer/
 ├── .github/workflows/test.yml # Test CI
 ├── .gitignore               # Exclude local secrets and generated files
 ├── assets/screenshot-desktop.png # Interface screenshot
-├── assets/screenshot-learning.png # Learn tab screenshot
+├── assets/screenshot-learning-20261015.png # Learn tab screenshot
 ├── index.html               # Exercise and learning interface
 ├── style.css                # Mobile-first styles
 ├── app.js                   # Interface, tabs, and progress

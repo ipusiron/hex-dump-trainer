@@ -59,7 +59,7 @@ Hex Dump Trainerは、16進ダンプの中からバイトの位置を探し、Et
 
 ![入門問題、16進ダンプ、教材一覧を表示した画面](assets/screenshot-desktop.png)
 
-![IPv4の図、解説行、元の16進バイトとVersionの上位4ビットを示す学習タブ](assets/screenshot-learning.png)
+![IPv4の図、解説行、元の16進バイトとVersionの上位4ビットを示す学習タブ](assets/screenshot-learning-20261015.png)
 
 ## ✨ 学べること
 
@@ -126,7 +126,7 @@ hex-dump-trainer/
 ├── .github/workflows/test.yml # テストCI
 ├── .gitignore               # ローカルの機密ファイルなどを除外
 ├── assets/screenshot-desktop.png # 画面例
-├── assets/screenshot-learning.png # 学習タブの画面例
+├── assets/screenshot-learning-20261015.png # 学習タブの画面例
 ├── index.html               # 演習と学習の画面
 ├── style.css                # モバイル優先のスタイル
 ├── app.js                   # 画面、タブ、進捗
