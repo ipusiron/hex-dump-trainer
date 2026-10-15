@@ -9,9 +9,11 @@
       lead: '16進ダンプを、バイトの位置から読めるように。',
       skipLink: '問題へ移動',
       skipLearning: '学習内容へ移動',
+      skipCustom: '自由入力へ移動',
       tabsLabel: '表示を選択',
       practiceTab: '演習',
       learnTab: '学習',
+      customTab: '自由入力',
       learnTitle: 'パケットの読み方',
       learnDumpTitle: '教材の16進ダンプ',
       learnDumpNote: '行頭はフレーム先頭からの16進オフセットです。薄いバイトはこのヘッダーの外側です。ここではASCII欄を省略しています。狭い画面では横にスクロールできます。',
@@ -69,7 +71,7 @@
       ethernet: 'Ethernet II',
       ipv4: 'IPv4',
       udp: 'UDP',
-      scope: '教材は自作のEthernet II＋IPv4＋UDPフレームです。FCSは含めません。自由入力や外部送信はありません。',
+      scope: '教材は自作のEthernet II＋IPv4＋UDPフレームです。FCSは含めません。自由入力は別タブで端末内だけで処理します。',
       boundaryIpStep: 'EtherType 0x0800はIPv4を示し、Ethernet IIヘッダー14バイトの直後からIPv4が始まります。',
       boundaryLengthStep: length => `IHLからIPv4ヘッダー長は${length}バイトです。開始位置14から数えて範囲を決めます。`,
       boundaryUdpStep: start => `Protocol 17はUDPを示します。IPv4ヘッダーの開始位置14にIHL × 4を加えると、UDPの開始位置${start}です。`,
@@ -92,9 +94,11 @@
       lead: 'Learn to read a hex dump by finding each byte.',
       skipLink: 'Skip to exercise',
       skipLearning: 'Skip to learning content',
+      skipCustom: 'Skip to your hex dump',
       tabsLabel: 'Choose a view',
       practiceTab: 'Exercises',
       learnTab: 'Learn',
+      customTab: 'Your dump',
       learnTitle: 'How to read the packets',
       learnDumpTitle: 'Bytes in the lesson dump',
       learnDumpNote: 'Row labels are hexadecimal offsets from the frame start. Faded bytes are outside this header. The ASCII column is omitted here. Scroll sideways on a narrow screen.',
@@ -152,7 +156,7 @@
       ethernet: 'Ethernet II',
       ipv4: 'IPv4',
       udp: 'UDP',
-      scope: 'Samples are original Ethernet II + IPv4 + UDP frames. FCS is omitted; there is no free-form input or external submission.',
+      scope: 'Samples are original Ethernet II + IPv4 + UDP frames. FCS is omitted. Your dump is processed only on this device.',
       boundaryIpStep: 'EtherType 0x0800 identifies IPv4, which begins after the 14-byte Ethernet II header.',
       boundaryLengthStep: length => `IHL gives a ${length}-byte IPv4 header. Count from the header start at offset 14.`,
       boundaryUdpStep: start => `Protocol 17 identifies UDP. Add IHL × 4 to the IPv4 start at 14 to find UDP at offset ${start}.`,
@@ -173,6 +177,103 @@
     }
   };
 
+  const customCopy = {
+    ja: {
+      title: '自分の16進ダンプを読む',
+      intro: '1フレーム分のバイト列を貼り付けると、読める範囲のEthernet II・IPv4・UDPフィールドを表示します。演習の採点には使いません。',
+      formatLabel: '入力形式', rawOption: '生の16進数', offsetOption: 'オフセット付き行',
+      rawNote: '例：02 FE DC BA 98 76 ...。空白や改行なしの連続した16進数も使えます。0x、ASCII欄、パケットキャプチャーファイルには非対応です。',
+      offsetNote: '例：0000: 02 FE DC BA 98 76。各行は16進オフセット＋コロン＋1～16バイト。先頭は0000、以降は連続させてください。ASCII欄には非対応です。',
+      inputLabel: '16進ダンプ', analyze: '読み取る', clear: '消去',
+      resultTitle: '読み取り結果', dumpTitle: '入力したバイト', fieldsTitle: '読み取れたフィールド',
+      privacy: '貼り付けた内容はこの端末内だけで処理し、保存・送信しません。ページを再読み込みすると消えます。機密情報を含むダンプの扱いには注意してください。',
+      summary: (length, count) => `${length}バイトを読み取り、${count}件のフィールドを表示しました。各フィールドを選ぶと対応するバイトを強調します。`,
+      selectionEmpty: 'フィールドを選ぶと、元のバイトと絶対オフセットを確認できます。',
+      selection: field => `絶対オフセット ${field.start}${field.start === field.end ? '' : `～${field.end}`}（10進数）／元のバイト：${field.rawHex}。`,
+      noFields: 'この入力から読み取れる完全なフィールドはありません。',
+      fieldNames: {
+        destinationMac: '宛先MAC', sourceMac: '送信元MAC', etherType: 'EtherType',
+        version: 'Version', ihl: 'IHL', headerLength: 'IPv4ヘッダー長', totalLength: 'Total Length',
+        ttl: 'TTL', protocol: 'Protocol', ipChecksum: 'IPv4ヘッダーチェックサム',
+        sourceIp: '送信元IP', destinationIp: '宛先IP', ipOptions: 'IPv4 Options',
+        udpSourcePort: '送信元ポート', udpDestinationPort: '宛先ポート',
+        udpLength: 'UDP Length', udpChecksum: 'UDP Checksum'
+      },
+      errors: {
+        empty: '16進ダンプを入力してください。', textTooLong: '入力テキストは16,384文字以内にしてください。',
+        unknownMode: '入力形式を選び直してください。',
+        invalidRaw: '生の16進数には0～9、A～F、空白・改行だけを使い、2桁で1バイトにしてください。',
+        invalidOffsetRow: '各行を「0000: 02 FE」の形式で入力してください。1行に1～16バイト、ASCII欄なしです。',
+        offsetGap: 'オフセットが連続していません。0000から始め、各行のバイト数に合わせてください。',
+        tooManyBytes: '1フレームは4,096バイト以内にしてください。',
+        generic: '入力を読み取れませんでした。形式を確認してください。'
+      },
+      warnings: {
+        ethernetTruncated: 'Ethernet IIヘッダーの14バイトが揃っていません。完全なフィールドだけを表示します。',
+        nonIpv4: value => `EtherTypeは${value}です。IPv4以外のペイロードは読み取りません。`,
+        ipv4Truncated: 'IPv4ヘッダーが途中で切れています。完全なフィールドだけを表示します。',
+        unsupportedIpVersion: value => `Versionは${value}です。IPv4以外として、この先は読み取りません。`,
+        invalidIhl: value => `IHLが${value}で、IPv4ヘッダーの最小値5より小さいため、この先は読み取りません。`,
+        invalidIpLength: value => `Total Lengthが${value}バイトで、IPv4ヘッダー長より短いため、この先は読み取りません。`,
+        ipv4DeclaredTruncated: value => `IPv4のTotal Lengthが示す範囲まで、あと${value}バイト足りません。`,
+        trailingBytes: value => `IPv4のTotal Lengthより後に${value}バイトあります。この後続部分は読み取りません。`,
+        fragmented: 'IPv4のフラグメントを示す値があります。再構成は行わず、UDPは読み取りません。',
+        nonUdp: value => `Protocolは${value}です。UDP以外の上位プロトコルは読み取りません。`,
+        udpTruncated: 'UDPヘッダーの8バイトが揃っていません。UDPフィールドは表示しません。',
+        invalidUdpLength: value => `UDP Lengthが${value}バイトで、UDPヘッダーの最小値8より短い値です。`,
+        udpLengthMismatch: value => `UDP Lengthは${value}バイトです。IPv4ペイロード長と一致しないため、残りのデータは判定しません。`,
+        udpDataTruncated: value => `UDP Lengthが示す範囲まで、あと${value}バイト足りません。`
+      }
+    },
+    en: {
+      title: 'Read your own hex dump',
+      intro: 'Paste one frame to inspect complete Ethernet II, IPv4, and UDP fields. This is separate from graded exercises.',
+      formatLabel: 'Input format', rawOption: 'Raw hexadecimal', offsetOption: 'Rows with offsets',
+      rawNote: 'Example: 02 FE DC BA 98 76 ... Continuous hex without whitespace also works. 0x, ASCII columns, and capture files are not supported.',
+      offsetNote: 'Example: 0000: 02 FE DC BA 98 76. Each row needs a hexadecimal offset, colon, and 1–16 bytes. Start at 0000 and keep offsets contiguous. No ASCII column.',
+      inputLabel: 'Hex dump', analyze: 'Inspect', clear: 'Clear',
+      resultTitle: 'Inspection result', dumpTitle: 'Input bytes', fieldsTitle: 'Readable fields',
+      privacy: 'Your input is processed only on this device. It is not saved or sent, and disappears on reload. Take care with dumps containing confidential data.',
+      summary: (length, count) => `Read ${length} bytes and displayed ${count} fields. Select a field to highlight its bytes.`,
+      selectionEmpty: 'Select a field to see its original bytes and absolute offsets.',
+      selection: field => `Absolute offsets ${field.start}${field.start === field.end ? '' : `–${field.end}`} (decimal). Original bytes: ${field.rawHex}.`,
+      noFields: 'No complete field can be read from this input.',
+      fieldNames: {
+        destinationMac: 'Destination MAC', sourceMac: 'Source MAC', etherType: 'EtherType',
+        version: 'Version', ihl: 'IHL', headerLength: 'IPv4 header length', totalLength: 'Total Length',
+        ttl: 'TTL', protocol: 'Protocol', ipChecksum: 'IPv4 header checksum',
+        sourceIp: 'Source IP', destinationIp: 'Destination IP', ipOptions: 'IPv4 Options',
+        udpSourcePort: 'Source port', udpDestinationPort: 'Destination port',
+        udpLength: 'UDP Length', udpChecksum: 'UDP Checksum'
+      },
+      errors: {
+        empty: 'Enter a hex dump.', textTooLong: 'Input text must be at most 16,384 characters.',
+        unknownMode: 'Choose an input format again.',
+        invalidRaw: 'Use only 0–9, A–F, and whitespace, with two hex digits per byte.',
+        invalidOffsetRow: 'Use rows like “0000: 02 FE” with 1–16 bytes and no ASCII column.',
+        offsetGap: 'Offsets are not contiguous. Start at 0000 and account for every byte in each row.',
+        tooManyBytes: 'A frame must be at most 4,096 bytes.',
+        generic: 'The input could not be read. Check its format.'
+      },
+      warnings: {
+        ethernetTruncated: 'The 14-byte Ethernet II header is incomplete. Only complete fields are shown.',
+        nonIpv4: value => `EtherType is ${value}. Non-IPv4 payloads are not inspected.`,
+        ipv4Truncated: 'The IPv4 header is truncated. Only complete fields are shown.',
+        unsupportedIpVersion: value => `Version is ${value}; inspection stops because this is not IPv4.`,
+        invalidIhl: value => `IHL is ${value}, below the IPv4 minimum of 5; inspection stops.`,
+        invalidIpLength: value => `Total Length is ${value} bytes, shorter than the IPv4 header; inspection stops.`,
+        ipv4DeclaredTruncated: value => `The IPv4 Total Length extends ${value} bytes beyond the input.`,
+        trailingBytes: value => `${value} bytes follow the IPv4 Total Length. They are not inspected.`,
+        fragmented: 'IPv4 fragmentation is indicated. Fragments are not reassembled and UDP is not inspected.',
+        nonUdp: value => `Protocol is ${value}. Non-UDP upper protocols are not inspected.`,
+        udpTruncated: 'The 8-byte UDP header is incomplete. UDP fields are not shown.',
+        invalidUdpLength: value => `UDP Length is ${value} bytes, below the minimum UDP header length of 8.`,
+        udpLengthMismatch: value => `UDP Length is ${value} bytes and differs from the IPv4 payload length; remaining data is not assessed.`,
+        udpDataTruncated: value => `The UDP Length extends ${value} bytes beyond the input.`
+      }
+    }
+  };
+
   const progress = Object.fromEntries(data.lessons.map(lesson => [lesson.id, {
     solved: new Set(), revealed: new Set()
   }]));
@@ -181,6 +282,7 @@
     start: '', end: '', value: '', hintLevel: 0,
     outcome: '', feedbackKey: '', noticeKey: ''
   };
+  const customState = { text: '', mode: 'raw', report: null, error: '', selected: null };
   const learnPanel = element('learn-panel');
   const learnItems = Array.from(learnPanel.querySelectorAll('[data-learn-field]'));
   const diagramFields = Array.from(learnPanel.querySelectorAll('.diagram-field'));
@@ -362,30 +464,31 @@
 
   function renderTabs() {
     const t = words();
-    const practice = state.view === 'practice';
     document.querySelector('.main-tabs').setAttribute('aria-label', t.tabsLabel);
     setText('practice-tab', t.practiceTab);
     setText('learn-tab', t.learnTab);
+    setText('custom-tab', t.customTab);
     setText('learn-title', t.learnTitle);
-    for (const [id, selected] of [['practice-tab', practice], ['learn-tab', !practice]]) {
-      const tab = element(id);
+    for (const view of ['practice', 'learn', 'custom']) {
+      const selected = state.view === view;
+      const tab = element(`${view}-tab`);
       tab.setAttribute('aria-selected', String(selected));
       tab.tabIndex = selected ? 0 : -1;
+      element(`${view}-panel`).hidden = !selected;
     }
-    element('practice-panel').hidden = !practice;
-    element('learn-panel').hidden = practice;
     element('learn-ja').hidden = state.locale !== 'ja';
     element('learn-en').hidden = state.locale !== 'en';
-    element('skip-link').href = practice ? '#question-title' : '#learn-panel';
-    setText('skip-link', practice ? t.skipLink : t.skipLearning);
-    if (!practice && learnHighlight.selected) scrollLearningRange(learnHighlight.selected);
+    const targets = { practice: ['#question-title', t.skipLink], learn: ['#learn-panel', t.skipLearning], custom: ['#custom-panel', t.skipCustom] };
+    element('skip-link').href = targets[state.view][0];
+    setText('skip-link', targets[state.view][1]);
+    if (state.view === 'learn' && learnHighlight.selected) scrollLearningRange(learnHighlight.selected);
   }
 
   function switchView(view, focusTab) {
-    if (view !== 'practice' && view !== 'learn') return;
+    if (!['practice', 'learn', 'custom'].includes(view)) return;
     state.view = view;
     renderTabs();
-    if (focusTab) element(view === 'practice' ? 'practice-tab' : 'learn-tab').focus();
+    if (focusTab) element(`${view}-tab`).focus();
   }
 
   function resetQuestion() {
@@ -478,9 +581,9 @@
       byteList.className = 'byte-list';
       for (const item of row.bytes) {
         const cell = document.createElement(interactive ? 'button' : 'span');
+        cell.dataset.offset = String(item.offset);
         if (interactive) {
           cell.type = 'button';
-          cell.dataset.offset = String(item.offset);
           cell.setAttribute('aria-label', t.byteAria(item.offset, item.hex));
           cell.setAttribute('aria-pressed', 'false');
         }
@@ -504,6 +607,81 @@
       element('dump-a').replaceChildren();
     }
     renderSelection();
+  }
+
+  function renderCustomSelection() {
+    const report = customState.report;
+    const field = report && report.fields[customState.selected];
+    setText('custom-selection', field ? customCopy[state.locale].selection(field) : customCopy[state.locale].selectionEmpty);
+    for (const byte of element('custom-dump').querySelectorAll('[data-offset]')) {
+      const offset = Number(byte.dataset.offset);
+      byte.classList.toggle('is-inspected', !!field && field.start <= offset && offset <= field.end);
+    }
+    for (const button of element('custom-fields').querySelectorAll('[data-field-index]')) {
+      const active = Number(button.dataset.fieldIndex) === customState.selected;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+  }
+
+  function renderCustom() {
+    const t = customCopy[state.locale];
+    setText('custom-title', t.title);
+    setText('custom-intro', t.intro);
+    setText('custom-format-label', t.formatLabel);
+    setText('custom-raw-option', t.rawOption);
+    setText('custom-offset-option', t.offsetOption);
+    setText('custom-format-note', customState.mode === 'raw' ? t.rawNote : t.offsetNote);
+    setText('custom-input-label', t.inputLabel);
+    setText('custom-analyze', t.analyze);
+    setText('custom-clear', t.clear);
+    setText('custom-result-title', t.resultTitle);
+    setText('custom-dump-title', t.dumpTitle);
+    setText('custom-fields-title', t.fieldsTitle);
+    setText('custom-privacy', t.privacy);
+    element('custom-format').value = customState.mode;
+    element('custom-input').value = customState.text;
+    const error = element('custom-error');
+    error.hidden = !customState.error;
+    error.textContent = customState.error ? t.errors[customState.error] || t.errors.generic : '';
+    const results = element('custom-results');
+    results.hidden = !customState.report;
+    if (!customState.report) {
+      element('custom-dump').replaceChildren();
+      element('custom-fields').replaceChildren();
+      element('custom-warnings').replaceChildren();
+      return;
+    }
+    const { bytes, fields, warnings } = customState.report;
+    setText('custom-summary', t.summary(bytes.length, fields.length));
+    element('custom-dump').replaceChildren(...rowsForDump(bytes, false));
+    element('custom-warnings').replaceChildren(...warnings.map(warning => {
+      const item = document.createElement('li');
+      const message = t.warnings[warning.code];
+      item.textContent = typeof message === 'function' ? message(warning.value) : message || warning.code;
+      return item;
+    }));
+    element('custom-fields').replaceChildren(...fields.map((field, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'custom-field';
+      button.dataset.fieldIndex = String(index);
+      button.setAttribute('aria-pressed', 'false');
+      const name = document.createElement('strong');
+      name.textContent = `${words()[field.header]} · ${t.fieldNames[field.key] || field.key}`;
+      const value = document.createElement('span');
+      value.textContent = field.value;
+      const raw = document.createElement('code');
+      raw.textContent = `${core.offsetHex(field.start)}${field.start === field.end ? '' : `–${core.offsetHex(field.end)}`} · ${field.rawHex}`;
+      button.append(name, value, raw);
+      return button;
+    }));
+    if (!fields.length) {
+      const note = document.createElement('p');
+      note.textContent = t.noFields;
+      element('custom-fields').append(note);
+    }
+    renderCustomSelection();
   }
 
   function parsedSelection() {
@@ -624,6 +802,7 @@
       : { decimal: '10', mac: '02:00:00:00:00:01', ip: '192.0.2.1' }[expected.format] || '';
     renderDump();
     renderOutcome();
+    renderCustom();
   }
 
   function recordOutcome(outcome) {
@@ -651,15 +830,65 @@
   });
   element('practice-tab').addEventListener('click', () => switchView('practice', false));
   element('learn-tab').addEventListener('click', () => switchView('learn', false));
+  element('custom-tab').addEventListener('click', () => switchView('custom', false));
   document.querySelector('.main-tabs').addEventListener('keydown', event => {
     let view;
     if (event.key === 'Home') view = 'practice';
-    else if (event.key === 'End') view = 'learn';
+    else if (event.key === 'End') view = 'custom';
     else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-      view = state.view === 'practice' ? 'learn' : 'practice';
+      const views = ['practice', 'learn', 'custom'];
+      const step = event.key === 'ArrowRight' ? 1 : -1;
+      view = views[(views.indexOf(state.view) + step + views.length) % views.length];
     } else return;
     event.preventDefault();
     switchView(view, true);
+  });
+  element('custom-format').addEventListener('change', event => {
+    customState.mode = event.target.value;
+    customState.report = null;
+    customState.error = '';
+    customState.selected = null;
+    renderCustom();
+  });
+  element('custom-input').addEventListener('input', event => {
+    customState.text = event.target.value;
+    customState.report = null;
+    customState.error = '';
+    customState.selected = null;
+    element('custom-error').hidden = true;
+    element('custom-results').hidden = true;
+  });
+  element('custom-form').addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      const bytes = core.parseDumpText(customState.text, customState.mode);
+      customState.report = { bytes, ...core.inspectPacket(bytes) };
+      customState.error = '';
+      customState.selected = null;
+      renderCustom();
+      element('custom-result-title').focus();
+    } catch (error) {
+      customState.report = null;
+      customState.error = error.code || 'generic';
+      customState.selected = null;
+      renderCustom();
+      element('custom-input').focus();
+    }
+  });
+  element('custom-clear').addEventListener('click', () => {
+    customState.text = '';
+    customState.report = null;
+    customState.error = '';
+    customState.selected = null;
+    renderCustom();
+    element('custom-input').focus();
+  });
+  element('custom-fields').addEventListener('click', event => {
+    const button = event.target.closest('[data-field-index]');
+    if (!button || !element('custom-fields').contains(button)) return;
+    const index = Number(button.dataset.fieldIndex);
+    customState.selected = customState.selected === index ? null : index;
+    renderCustomSelection();
   });
   learnPanel.addEventListener('pointerover', event => {
     if (event.pointerType === 'touch' || !matchMedia('(hover: hover)').matches) return;
