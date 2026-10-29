@@ -71,15 +71,30 @@ test('both READMEs open Use cases with the same three tool-specific uses recompu
 
   const frames = data.frames;
   const answer = (field, frame, comparison) => core.answerFor({ field }, frame, comparison);
+  // Read every frame through the lesson the README names, so that a change of a lesson's frames
+  // or of its A/B assignment fails here. A is the reference frame; B is the frame the questions ask about.
+  const lessonOf = id => {
+    const lesson = data.lessons.find(l => l.id === id);
+    assert.ok(lesson, `lesson ${id}`);
+    return lesson;
+  };
+  const cmp = lessonOf('comparison');
+  const ping = lessonOf('pingPair');
+  const udp = lessonOf('udp');
+  const cmpA = frames[cmp.compareFrameId];
+  const cmpB = frames[cmp.frameId];
+  const pingA = frames[ping.compareFrameId];
+  const pingB = frames[ping.frameId];
+  const udpFrame = frames[udp.frameId];
 
   // 1. A checksum is the inverted sum, so it rises by exactly what the 16-bit word lost.
-  const firstChanged = answer('firstChangedByte', frames.compare, frames.mixed);
-  const ttlA = answer('ttl', frames.mixed);
-  const ttlB = answer('ttl', frames.compare);
-  const ipA = answer('ipChecksum', frames.mixed).value;
-  const ipB = answer('ipChecksum', frames.compare).value;
-  const before = core.parseHex(frames.mixed.hex);
-  const after = core.parseHex(frames.compare.hex);
+  const firstChanged = answer('firstChangedByte', cmpB, cmpA);
+  const ttlA = answer('ttl', cmpA);
+  const ttlB = answer('ttl', cmpB);
+  const ipA = answer('ipChecksum', cmpA).value;
+  const ipB = answer('ipChecksum', cmpB).value;
+  const before = core.parseHex(cmpA.hex);
+  const after = core.parseHex(cmpB.hex);
   assert.deepEqual(Array.from(after.keys()).filter(i => after[i] !== before[i]), [22, 24]);
   assert.equal(firstChanged.value, String(ttlA.start));
   assert.equal(ttlA.relativeStart % 2, 0, 'TTL is the upper byte of its 16-bit word');
@@ -88,77 +103,91 @@ test('both READMEs open Use cases with the same three tool-specific uses recompu
   assert.equal(ttlDrop, 1);
   assert.equal(ipRise, ttlDrop * 256);
 
-  const typeA = answer('icmpType', frames.echoRequest);
-  const typeB = answer('icmpType', frames.echoReply);
-  const icmpChecksum = answer('icmpChecksum', frames.echoRequest);
+  const typeA = answer('icmpType', pingA);
+  const typeB = answer('icmpType', pingB);
+  const icmpChecksum = answer('icmpChecksum', pingA);
   const icmpA = icmpChecksum.value;
-  const icmpB = answer('icmpChecksum', frames.echoReply).value;
-  const request = core.parseHex(frames.echoRequest.hex);
-  const reply = core.parseHex(frames.echoReply.hex);
+  const icmpB = answer('icmpChecksum', pingB).value;
+  const request = core.parseHex(pingA.hex);
+  const reply = core.parseHex(pingB.hex);
   const icmpChanged = Array.from(reply.keys()).filter(i => i >= typeA.start && reply[i] !== request[i]);
   assert.ok(icmpChanged.includes(typeA.start));
   assert.ok(icmpChanged.every(i => i === typeA.start ||
     (i >= icmpChecksum.start && i <= icmpChecksum.end)), 'only Type and the ICMP Checksum change');
   assert.equal(typeA.relativeStart % 2, 0, 'Type is the upper byte of its 16-bit word');
+  const typeDrop = typeA.numericValue - typeB.numericValue;
   const icmpRise = Number(icmpB) - Number(icmpA);
-  assert.equal(icmpRise, (typeA.numericValue - typeB.numericValue) * 256);
+  assert.equal(icmpRise, typeDrop * 256);
 
   // 2. The UDP lesson frame: data bytes against header bytes.
-  const udpLength = answer('udpLength', frames.mixed).numericValue;
-  const udpHeader = answer('udpHeader', frames.mixed).numericValue;
-  const totalLength = answer('totalLength', frames.mixed).numericValue;
-  const frameLength = core.parseHex(frames.mixed.hex).length;
+  const ethernetLength = answer('ipv4Start', udpFrame).numericValue;
+  const udpLength = answer('udpLength', udpFrame).numericValue;
+  const udpHeader = answer('udpHeader', udpFrame).numericValue;
+  const totalLength = answer('totalLength', udpFrame).numericValue;
+  const frameLength = core.parseHex(udpFrame.hex).length;
   const dataLength = udpLength - udpHeader;
   const headerBytes = frameLength - dataLength;
-  assert.equal(14 + totalLength, frameLength);
-  assert.equal(headerBytes, 14 + answer('headerLength', frames.mixed).numericValue + udpHeader);
+  assert.equal(ethernetLength + totalLength, frameLength);
+  assert.equal(headerBytes, ethernetLength + answer('headerLength', udpFrame).numericValue + udpHeader);
   assert.equal(headerBytes * 3, frameLength * 2, 'exactly two thirds');
 
   // 3. The same two bytes read from the other end.
-  const swapped = frames.echoRequest.hex.split(' ');
-  const id = answer('icmpIdentifier', frames.echoRequest);
-  const seq = answer('icmpSequence', frames.echoRequest);
+  const swapped = pingA.hex.split(' ');
+  const id = answer('icmpIdentifier', pingA);
+  const seq = answer('icmpSequence', pingA);
   for (const start of [id.start, seq.start]) {
     [swapped[start], swapped[start + 1]] = [swapped[start + 1], swapped[start]];
   }
   const reversed = { hex: swapped.join(' ') };
   const idOther = answer('icmpIdentifier', reversed).value;
   const seqOther = answer('icmpSequence', reversed).value;
-  assert.equal(answer('icmpIdentifier', frames.echoReply).value, id.value);
-  assert.equal(answer('icmpSequence', frames.echoReply).value, seq.value);
-  const idNumber = core.answerFor({ field: 'icmpIdentifier', format: 'decimal' }, frames.echoRequest).value;
+  assert.equal(answer('icmpIdentifier', pingB).value, id.value);
+  assert.equal(answer('icmpSequence', pingB).value, seq.value);
+  const idNumber = core.answerFor({ field: 'icmpIdentifier', format: 'decimal' }, pingA).value;
   const idOtherNumber = core.answerFor({ field: 'icmpIdentifier', format: 'decimal' }, reversed).value;
 
   const expected = {
     ja: [
+      `「${cmp.title.ja}」で最初に`,
       `オフセット\`${firstChanged.value}\`のTTL`,
       `TTLは\`${ttlA.value}\`から\`${ttlB.value}\`へ${ttlDrop}減り`,
       `\`${ipA}\`から\`${ipB}\`へ\`${hex4(ipRise)}\`（${grouped(ipRise)}）増える`,
-      `1減ると語は${ttlDrop * 256}減り`,
+      `${ttlDrop}減るとその16ビットの値は${grouped(ttlDrop * 256)}減り`,
+      `「${ping.title.ja}」でもType`,
       `Typeが\`${typeA.value}\`から\`${typeB.value}\`になる`,
       `\`${icmpA}\`から\`${icmpB}\`へ\`${hex4(icmpRise)}\`（${grouped(icmpRise)}）増える`,
+      `${typeDrop}減るとその16ビットの値は${grouped(typeDrop * 256)}減る`,
+      `「${udp.title.ja}」の教材`,
       `UDPのLengthが\`${udpLength}\``,
       `UDPヘッダーの${udpHeader}バイトを引くとデータは${dataLength}バイト`,
       `Total Length \`${totalLength}\``,
+      `Ethernet IIの${ethernetLength}バイトを足すと`,
       `フレームは${frameLength}バイト`,
       `そのうち${headerBytes}バイト、ちょうど3分の2`,
+      `「${ping.title.ja}」のIdentifier`,
       `Identifier \`${id.rawHex}\``,
       `\`${id.value}\`（${grouped(idNumber)}）`,
       `\`${idOther}\`（${grouped(idOtherNumber)}）`,
       `Sequence Number \`${seq.rawHex}\`も${seq.value}と${seqOther}に分かれる`
     ],
     en: [
+      `In ${cmp.title.en}, the first byte`,
       `the TTL at offset \`${firstChanged.value}\``,
       `drops by ${ttlDrop} from \`${ttlA.value}\` to \`${ttlB.value}\``,
       `rises by \`${hex4(ipRise)}\` (${grouped(ipRise)}) from \`${ipA}\` to \`${ipB}\``,
-      `lowers the word by ${ttlDrop * 256}`,
+      `a drop of ${ttlDrop} lowers the word by ${grouped(ttlDrop * 256)}`,
+      `Likewise, in ${ping.title.en}, Type`,
       `Type changes from \`${typeA.value}\` to \`${typeB.value}\``,
       `rises by \`${hex4(icmpRise)}\` (${grouped(icmpRise)}) from \`${icmpA}\` to \`${icmpB}\``,
+      `a drop of ${typeDrop} lowers the word by ${grouped(typeDrop * 256)}`,
+      `in the ${udp.title.en} lesson`,
       `the UDP Length is \`${udpLength}\``,
       `the ${udpHeader}-byte UDP header leaves ${dataLength} bytes of data`,
+      `Adding the ${ethernetLength}-byte Ethernet II header`,
       `Total Length of \`${totalLength}\``,
       `a ${frameLength}-byte frame`,
       `of which ${headerBytes} bytes, exactly two thirds`,
+      `in ${ping.title.en} is`,
       `The Identifier \`${id.rawHex}\``,
       `\`${id.value}\` (${grouped(idNumber)})`,
       `\`${idOther}\` (${grouped(idOtherNumber)})`,
@@ -170,7 +199,7 @@ test('both READMEs open Use cases with the same three tool-specific uses recompu
       assert.ok(block.includes(phrase), `${locale} is missing: ${phrase}`);
     }
   }
-  assert.deepEqual([ipRise, icmpRise, dataLength, headerBytes, frameLength, Number(idNumber),
-    Number(idOtherNumber), Number(seq.value), Number(seqOther)],
-  [256, 2048, 21, 42, 63, 4660, 13330, 1, 256]);
+  assert.deepEqual([ipRise, typeDrop, icmpRise, ethernetLength, dataLength, headerBytes, frameLength,
+    Number(idNumber), Number(idOtherNumber), Number(seq.value), Number(seqOther)],
+  [256, 8, 2048, 14, 21, 42, 63, 4660, 13330, 1, 256]);
 });
