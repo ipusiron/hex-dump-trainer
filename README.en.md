@@ -130,6 +130,7 @@ hex-dump-trainer/
 ├── assets/screenshot-comparison-mobile-20261015.png # Mobile comparison screenshot
 ├── assets/screenshot-free-input-{390,1280}.png # Your dump screenshots
 ├── assets/screenshot-icmp-learning-{390,1280}.png # ICMPv4 learning screenshots
+├── assets/favicon.svg       # Favicon
 ├── index.html               # Exercise, learning, and input interface
 ├── style.css                # Mobile-first styles
 ├── app.js                   # Interface, tabs, and progress
