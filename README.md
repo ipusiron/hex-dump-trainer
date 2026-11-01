@@ -165,6 +165,7 @@ hex-dump-trainer/
 ├── assets/screenshot-comparison-mobile-20261015.png # 比較画面のモバイル例
 ├── assets/screenshot-free-input-{390,1280}.png # 自由入力の画面例
 ├── assets/screenshot-icmp-learning-{390,1280}.png # ICMPv4学習画面例
+├── assets/favicon.svg       # ファビコン
 ├── index.html               # 演習・学習・自由入力の画面
 ├── style.css                # モバイル優先のスタイル
 ├── app.js                   # 画面、タブ、進捗
