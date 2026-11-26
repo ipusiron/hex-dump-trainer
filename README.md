@@ -16,7 +16,7 @@ category_ja:
 category_en:
   - Networking
 
-difficulty: 1
+difficulty: 2
 
 tags:
   - hex-dump
